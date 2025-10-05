@@ -1,0 +1,4 @@
+[submodule "external/noirwire-contracts"]
+	path = external/noirwire-contracts
+	url = https://github.com/f1l1ph/noirwire-contracts.git
+	branch = master
