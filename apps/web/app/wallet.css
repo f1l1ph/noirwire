@@ -1,0 +1,2 @@
+/* Import wallet adapter styles globally */
+@import '@solana/wallet-adapter-react-ui/styles.css';

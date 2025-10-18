@@ -7,35 +7,9 @@ import { UpdateLinkDto } from '@repo/api/links/dto/update-link.dto';
 
 @Injectable()
 export class LinksService {
-  private readonly _links: Link[] = [
-    {
-      id: 0,
-      title: 'Docs',
-      url: 'https://turborepo.com/docs',
-      description:
-        'Find in-depth information about Turborepo features and API.',
-    },
-    {
-      id: 1,
-      title: 'Learn',
-      url: 'https://turborepo.com/docs/handbook',
-      description: 'Learn more about monorepos with our handbook.',
-    },
-    {
-      id: 2,
-      title: 'Templates',
-      url: 'https://turborepo.com/docs/getting-started/from-example',
-      description:
-        'Choose from over 15 examples and deploy with a single click.',
-    },
-    {
-      id: 3,
-      title: 'Deploy',
-      url: 'https://vercel.com/new',
-      description:
-        'Instantly deploy your Turborepo to a shareable URL with Vercel.',
-    },
-  ];
+  // REMOVED DEMO DATA FOR HACKATHON
+  // Originally had Turborepo documentation links for testing
+  private readonly _links: Link[] = [];
 
   create(createLinkDto: CreateLinkDto) {
     return `This action adds a new link ${createLinkDto}`;

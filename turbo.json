@@ -1,6 +1,14 @@
 {
   "$schema": "https://turborepo.com/schema.json",
   "globalDependencies": ["**/.env.*local"],
+  "globalEnv": [
+    "SUPABASE_URL",
+    "SUPABASE_SERVICE_KEY",
+    "NEXT_PUBLIC_API_URL",
+    "SOLANA_RPC_URL",
+    "NOIRWIRE_PROGRAM_ID",
+    "SOLANA_COMMITMENT"
+  ],
   "tasks": {
     "dev": {
       "cache": false,

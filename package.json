@@ -2,20 +2,21 @@
   "name": "my-turborepo",
   "version": "0.0.0",
   "private": true,
-  "description": "",
+  "description": "NoirWire - Private payments on Solana",
   "author": "",
   "license": "UNLICENSED",
   "scripts": {
-    "dev": "turbo run dev",
     "build": "turbo run build",
-    "test": "turbo run test",
-    "test:e2e": "turbo run test:e2e",
+    "dev": "concurrently \"npm run dev:web\" \"npm run dev:api\"",
+    "dev:web": "turbo run dev --filter=web",
+    "dev:api": "turbo run dev --filter=api",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\""
   },
   "devDependencies": {
     "@repo/eslint-config": "*",
     "@repo/typescript-config": "*",
+    "concurrently": "^8.2.2",
     "prettier": "^3.2.5",
     "turbo": "^2.5.8"
   },
