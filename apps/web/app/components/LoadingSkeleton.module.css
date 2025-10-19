@@ -1,0 +1,184 @@
+/* Loading Skeleton Styles */
+
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.cardSkeleton {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.skeletonIcon {
+  width: 48px;
+  height: 48px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.skeletonTitle {
+  width: 60%;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  animation: shimmer 1.5s ease-in-out infinite 0.2s;
+}
+
+.skeletonText {
+  width: 90%;
+  height: 16px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  animation: shimmer 1.5s ease-in-out infinite 0.4s;
+}
+
+/* Conversation List Skeleton */
+.conversationList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.conversationSkeleton {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.skeletonAvatar {
+  width: 48px;
+  height: 48px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  flex-shrink: 0;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.conversationContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.skeletonName {
+  width: 40%;
+  height: 18px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  animation: shimmer 1.5s ease-in-out infinite 0.2s;
+}
+
+.skeletonMessage {
+  width: 80%;
+  height: 14px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  animation: shimmer 1.5s ease-in-out infinite 0.4s;
+}
+
+/* Message Skeleton */
+.messageList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.messageSent,
+.messageReceived {
+  display: flex;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.messageSent {
+  justify-content: flex-end;
+}
+
+.messageReceived {
+  justify-content: flex-start;
+}
+
+.skeletonMessageBubble {
+  width: 60%;
+  height: 60px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.messageSent .skeletonMessageBubble {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(236, 72, 153, 0.15));
+}
+
+/* List Skeleton */
+.listContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.listItem {
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.skeletonLine {
+  width: 100%;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+/* Animations */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeletonIcon,
+.skeletonTitle,
+.skeletonText,
+.skeletonAvatar,
+.skeletonName,
+.skeletonMessage,
+.skeletonMessageBubble,
+.skeletonLine {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.05) 25%,
+    rgba(255, 255, 255, 0.15) 50%,
+    rgba(255, 255, 255, 0.05) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}

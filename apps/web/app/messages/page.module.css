@@ -1,0 +1,469 @@
+/* Messaging page styles with glass effect */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+}
+
+.header {
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.02);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+.headerContent {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.headerTitle {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.headerTitle h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #f3f4f6;
+}
+
+.backButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.5rem;
+  color: #9ca3af;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
+}
+
+.backButton:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #f3f4f6;
+}
+
+.container {
+  flex: 1;
+  display: flex;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+  height: calc(100vh - 100px);
+}
+
+.sidebar {
+  width: 350px;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.02);
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebarHeader {
+  padding: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.newChatButton {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: linear-gradient(135deg, #a78bfa 0%, #ec4899 100%);
+  border: none;
+  border-radius: 0.75rem;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.newChatButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(167, 139, 250, 0.3);
+}
+
+.conversationList {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.conversationItem {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.conversationItem:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.conversationItemActive {
+  background: rgba(167, 139, 250, 0.1);
+  border-left: 3px solid #a78bfa;
+}
+
+.conversationHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.conversationWallet {
+  font-weight: 600;
+  color: #f3f4f6;
+  font-family: var(--font-geist-mono);
+  font-size: 0.875rem;
+}
+
+.conversationTime {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.conversationPreview {
+  font-size: 0.875rem;
+  color: #9ca3af;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.unreadBadge {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: #ec4899;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.125rem 0.5rem;
+  border-radius: 1rem;
+}
+
+.mainContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: rgba(255, 255, 255, 0.01);
+}
+
+.emptyState {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+}
+
+.emptyStateIcon {
+  width: 4rem;
+  height: 4rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.emptyState p {
+  font-size: 1.125rem;
+}
+
+.threadHeader {
+  padding: 1rem 2rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.02);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.threadRecipient {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #f3f4f6;
+  font-family: var(--font-geist-mono);
+}
+
+.threadMessages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.messageBubble {
+  max-width: 70%;
+  padding: 0.75rem 1rem;
+  border-radius: 1rem;
+  word-wrap: break-word;
+}
+
+.messageSent {
+  align-self: flex-end;
+  background: linear-gradient(135deg, #a78bfa 0%, #ec4899 100%);
+  color: white;
+  border-bottom-right-radius: 0.25rem;
+}
+
+.messageReceived {
+  align-self: flex-start;
+  background: rgba(255, 255, 255, 0.1);
+  color: #f3f4f6;
+  border-bottom-left-radius: 0.25rem;
+}
+
+.messageText {
+  margin-bottom: 0.25rem;
+}
+
+.messageTime {
+  font-size: 0.75rem;
+  opacity: 0.7;
+  text-align: right;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.25rem;
+}
+
+.sendingIndicator {
+  font-size: 0.7rem;
+  font-style: italic;
+  opacity: 0.8;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.messagePending {
+  opacity: 0.7;
+  position: relative;
+}
+
+.messagePending::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: -1rem;
+  width: 0.5rem;
+  height: 0.5rem;
+  background: #a78bfa;
+  border-radius: 50%;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.inputContainer {
+  padding: 1.5rem 2rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.inputForm {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-end;
+}
+
+.inputWrapper {
+  flex: 1;
+  position: relative;
+}
+
+.input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.75rem;
+  color: #f3f4f6;
+  font-size: 0.875rem;
+  resize: none;
+  max-height: 120px;
+  font-family: inherit;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #a78bfa;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.input::placeholder {
+  color: #6b7280;
+}
+
+.sendButton {
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #a78bfa 0%, #ec4899 100%);
+  border: none;
+  border-radius: 0.75rem;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sendButton:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(167, 139, 250, 0.3);
+}
+
+.sendButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 100%;
+    border-right: none;
+  }
+
+  .mainContent {
+    display: none;
+  }
+
+  .sidebarHidden {
+    display: none;
+  }
+
+  .mainContentMobile {
+    display: flex;
+  }
+}
+
+/* Loading state */
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  color: #6b7280;
+}
+
+.loadingSpinner {
+  width: 2rem;
+  height: 2rem;
+  border: 3px solid rgba(167, 139, 250, 0.2);
+  border-top-color: #a78bfa;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Error state */
+.error {
+  padding: 1rem;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 0.5rem;
+  color: #f87171;
+  margin: 1rem;
+}
+
+/* Modal styles */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modalContent {
+  background: rgba(26, 26, 46, 0.95);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 1rem;
+  padding: 2rem;
+  min-width: 400px;
+}
+
+.modalTitle {
+  margin-bottom: 1rem;
+  color: #f3f4f6;
+}
+
+.modalInput {
+  width: 100%;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.5rem;
+  color: #f3f4f6;
+  margin-bottom: 1rem;
+}
+
+.modalActions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+.modalButton {
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.modalButtonCancel {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #9ca3af;
+}
+
+.modalButtonPrimary {
+  background: linear-gradient(135deg, #a78bfa 0%, #ec4899 100%);
+  border: none;
+  color: white;
+}
+
+.emptyStateSmall {
+  padding: 2rem;
+}
+
+.emptyStateText {
+  font-size: 0.875rem;
+}

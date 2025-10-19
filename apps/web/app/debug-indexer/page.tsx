@@ -54,14 +54,14 @@ export default function DebugIndexerPage() {
       let nextStatus = data;
 
       // Also fetch commitments for shield tree
-      if (data.trees.shield.count > 0) {
+      if (data.trees.shield && data.trees.shield.count > 0) {
         const commitmentsData =
           await getCircuitCommitmentsFromIndexer('shield');
         console.log('[Debug] Shield commitments:', commitmentsData);
         nextStatus = {
           ...data,
           shieldCommitments: commitmentsData.commitments,
-        };
+        } as any;
       }
 
       setStatus(nextStatus);

@@ -5,11 +5,7 @@
  */
 
 import { get, post } from './httpClient';
-import {
-  deriveEncryptionKey,
-  encryptNotes,
-  decryptNotes,
-} from './notesEncryption';
+import { encryptNotes, decryptNotes } from './notesEncryption';
 import { STORAGE_KEYS } from './constants';
 import {
   NoteSchema,
@@ -31,8 +27,7 @@ export class NotesSync {
     // Validate notes before encryption
     notes.forEach((note) => NoteSchema.parse(note));
 
-    const key = await deriveEncryptionKey(walletAddress);
-    const encryptedData = encryptNotes(notes, key);
+    const encryptedData = encryptNotes(notes, walletAddress);
 
     const response = await post<unknown>('/notes/upload', {
       walletAddress,
@@ -47,15 +42,16 @@ export class NotesSync {
    * Download and decrypt notes from server with validation
    */
   async downloadNotes(walletAddress: string): Promise<Note[]> {
-    const key = await deriveEncryptionKey(walletAddress);
-
     const response = await get<DownloadResponse>(`/notes/${walletAddress}`);
 
     if (!response.found || !response.encryptedData) {
       return [];
     }
 
-    const notes = decryptNotes(response.encryptedData, key) as Note[];
+    const notes = (await decryptNotes(
+      response.encryptedData,
+      walletAddress,
+    )) as Note[];
 
     // Validate each note
     return notes.map((note) => NoteSchema.parse(note));
