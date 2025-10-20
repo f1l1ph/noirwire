@@ -1,0 +1,48 @@
+# Files to exclude from Railway deployment
+
+node_modules/
+.turbo/
+.git/
+.github/
+.vscode/
+_.log
+.env_
+!.env.example
+
+# Test files
+
+**/\*.test.ts
+**/\*.spec.ts
+**/test/
+**/tests/
+
+# Documentation
+
+\*.md
+!README.md
+docs/
+
+# Development files
+
+**/.eslintrc\*
+**/jest.config\*
+
+# Build artifacts (will be rebuilt on Railway)
+
+dist/
+.next/
+build/
+
+# External contracts (not needed for API)
+
+external/
+
+# Web app (deploying separately to Vercel)
+
+apps/web/
+
+# Other packages not needed for runtime
+
+packages/eslint-config/
+packages/jest-config/
+packages/ui/

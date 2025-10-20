@@ -4,14 +4,22 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Enable CORS for frontend communication
+  // CORS configuration - supports both local and production
+  const allowedOrigins = process.env.CORS_ORIGINS
+    ? process.env.CORS_ORIGINS.split(',')
+    : ['http://localhost:3001', 'http://localhost:3000'];
+
   app.enableCors({
-    origin: ['http://localhost:3001', 'http://localhost:3000'],
+    origin: allowedOrigins,
     credentials: true,
   });
 
-  await app.listen(3000);
-  console.log('🚀 API server running on http://localhost:3000');
+  // Use PORT from environment (Railway, Render, etc.) or default to 3000
+  const port = process.env.PORT || 3000;
+
+  await app.listen(port);
+  console.log(`🚀 API server running on http://localhost:${port}`);
+  console.log(`📡 CORS enabled for: ${allowedOrigins.join(', ')}`);
 }
 
 void bootstrap();

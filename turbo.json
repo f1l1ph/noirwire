@@ -3,6 +3,8 @@
   "globalDependencies": ["**/.env.*local"],
   "globalEnv": [
     "NODE_ENV",
+    "PORT",
+    "CORS_ORIGINS",
     "SUPABASE_URL",
     "SUPABASE_SERVICE_KEY",
     "NEXT_PUBLIC_API_URL",
