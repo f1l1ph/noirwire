@@ -105,10 +105,46 @@
   cursor: not-allowed;
 }
 
+/* Input Hints */
 .inputHint {
-  margin: 0.5rem 0 0 0;
+  margin-top: 0.5rem;
   font-size: 0.875rem;
-  color: var(--foreground-secondary, #888);
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* Token Type Toggle */
+.tokenTypeToggle {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.tokenTypeButton {
+  flex: 1;
+  padding: 0.75rem;
+  font-size: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.5rem;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.tokenTypeButton:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.tokenTypeButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.tokenTypeButtonActive {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
 }
 
 .feeDisplay {
@@ -401,6 +437,13 @@
 
 .infoList li:last-child {
   margin-bottom: 0;
+}
+
+.emptyState {
+  text-align: center;
+  color: var(--foreground-secondary, #888);
+  padding: 2rem;
+  font-size: 1rem;
 }
 
 @media (max-width: 768px) {

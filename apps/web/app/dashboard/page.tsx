@@ -16,6 +16,8 @@ import {
 import { useState, useEffect } from 'react';
 import styles from './page.module.css';
 import LoadingSkeleton from '../components/LoadingSkeleton';
+import DashboardHeader from './DashboardHeader';
+import Navigation from '../components/Navigation';
 
 interface FeatureCard {
   id: string;
@@ -115,27 +117,13 @@ export default function DashboardPage() {
     router.push(feature.route);
   };
 
-  const formatWalletAddress = (address: string) => {
-    return `${address.slice(0, 4)}...${address.slice(-4)}`;
-  };
-
   return (
     <div className={styles.page}>
-      <header className={styles.header}>
-        <h1>⚡ NoirWire Dashboard</h1>
-        <p>Your Privacy Hub on Solana</p>
-      </header>
+      {/* Universal Navigation */}
+      <Navigation />
 
-      {connected && publicKey && (
-        <div className={styles.walletSection}>
-          <div className={styles.walletInfo}>
-            <span className={styles.walletAddress}>
-              {formatWalletAddress(publicKey.toBase58())}
-            </span>
-            <span className={styles.networkBadge}>Devnet</span>
-          </div>
-        </div>
-      )}
+      {/* Balances Section */}
+      {connected && publicKey && <DashboardHeader />}
 
       <main className={styles.main}>
         {isLoading ? (

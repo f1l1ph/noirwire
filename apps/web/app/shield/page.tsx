@@ -3,13 +3,13 @@
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { PublicKey, TransactionInstruction, Transaction } from '@solana/web3.js';
 import { useState } from 'react';
-import Link from 'next/link';
 import { computeCommitment, fieldToBuffer, bufferToField } from '../../lib/crypto';
 import { getNextNoteIndex, deriveBlindingFactor } from '../../lib/notes';
 import { generateProof, decodeProof } from '../../lib/proofService';
 import { ProcessingStep, ShieldInput } from '../../lib/types';
 import { useWalletData } from '../context/WalletDataContext';
 import styles from '../components/TransactionLayout.module.css';
+import Navigation from '../components/Navigation';
 
 const PROGRAM_ID = new PublicKey('Hza5rjYmJnoYsjsgsuxLkyxLoWVo6RCUZxCB3x17v8qz');
 const SHIELD_DISCRIMINATOR = Buffer.from([20, 113, 217, 81, 39, 76, 191, 163]);
@@ -240,10 +240,9 @@ export default function ShieldPage() {
 
   return (
     <div className={styles.page}>
+      <Navigation />
+      
       <header className={styles.header}>
-        <Link href="/" className={styles.backButton}>
-          ← Back to Home
-        </Link>
         <h1 className={styles.title}>🛡️ Shield SOL</h1>
         <p className={styles.description}>Deposit SOL into the privacy pool with zero-knowledge proof</p>
       </header>

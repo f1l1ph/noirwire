@@ -1,7 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import styles from './debug.module.css';
+import styles from '../components/TransactionLayout.module.css'; // Use shared layout styles
+import debugStyles from './debug.module.css'; // Keep debug-specific styles
+import Navigation from '../components/Navigation';
 import {
   addCommitmentToIndexer as addCommitmentRequest,
   getCircuitCommitmentsFromIndexer,
@@ -18,18 +20,20 @@ import {
  * 3. Testing Merkle proof generation
  * 4. Showing all notes in localStorage
  */
+interface IndexerStatus {
+  initialized: boolean;
+  trees: Record<string, { count: number }>;
+  latestRoots?: Record<string, { root: string; updatedAt: number } | null>;
+  shieldCommitments?: Array<{
+    index: number;
+    commitmentDecimal: string;
+    commitmentHex: string;
+    preview: string;
+  }>;
+}
+
 export default function DebugIndexerPage() {
-  const [status, setStatus] = useState<{
-    initialized: boolean;
-    trees: Record<string, { count: number }>;
-    latestRoots?: Record<string, { root: string; updatedAt: number } | null>;
-    shieldCommitments?: Array<{
-      index: number;
-      commitmentDecimal: string;
-      commitmentHex: string;
-      preview: string;
-    }>;
-  } | null>(null);
+  const [status, setStatus] = useState<IndexerStatus | null>(null);
   const [testCommitment, setTestCommitment] = useState('');
   const [testCircuit, setTestCircuit] = useState<'shield' | 'transfer' | 'unshield'>('shield');
   const [proofResult, setProofResult] = useState<{
@@ -51,17 +55,14 @@ export default function DebugIndexerPage() {
     setError('');
     try {
       const data = await fetchIndexerStatus();
-      let nextStatus = data;
+      const nextStatus: IndexerStatus = { ...data };
 
       // Also fetch commitments for shield tree
       if (data.trees.shield && data.trees.shield.count > 0) {
         const commitmentsData =
           await getCircuitCommitmentsFromIndexer('shield');
         console.log('[Debug] Shield commitments:', commitmentsData);
-        nextStatus = {
-          ...data,
-          shieldCommitments: commitmentsData.commitments,
-        } as any;
+        nextStatus.shieldCommitments = commitmentsData.commitments;
       }
 
       setStatus(nextStatus);
@@ -154,49 +155,57 @@ export default function DebugIndexerPage() {
   };
 
   return (
-    <div className={styles.container}>
-      <h1 className={styles.title}>🔍 Indexer Debug Page</h1>
+    <div className={styles.page}>
+      <Navigation />
       
-      {error && (
-        <div className={styles.error}>
-          <span className={styles.errorTitle}>❌ Error:</span> {error}
-        </div>
-      )}
+      <header className={styles.header}>
+        <h1 className={styles.title}>🔍 Indexer Debug Page</h1>
+        <p className={styles.description}>Debug Merkle tree and indexer operations</p>
+      </header>
 
-      {/* Section 1: Indexer Status */}
-      <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>1. Indexer Status</h2>
-        <button 
-          onClick={loadIndexerStatus} 
-          disabled={loading}
-          className={`${styles.button} ${styles.buttonPrimary}`}
-        >
-          {loading ? 'Loading...' : 'Load Status'}
-        </button>
-
-        {status && (
-          <pre className={styles.codeBlock}>
-            {JSON.stringify(status, null, 2)}
-          </pre>
+      <div className={styles.container}>
+        {error && (
+          <div className={styles.statusBox + ' ' + styles.statusBoxError}>
+            <p className={styles.statusMessage}>
+              <span className={debugStyles.errorTitle}>❌ Error:</span> {error}
+            </p>
+          </div>
         )}
-      </section>
 
-      {/* Section 2: LocalStorage Notes */}
-      <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>2. Notes in LocalStorage</h2>
-        <button 
-          onClick={loadNotes}
-          className={`${styles.button} ${styles.buttonSecondary}`}
-        >
-          Load Notes
-        </button>
+        {/* Section 1: Indexer Status */}
+        <section className={debugStyles.section}>
+          <h2 className={debugStyles.sectionTitle}>1. Indexer Status</h2>
+          <button 
+            onClick={loadIndexerStatus} 
+            disabled={loading}
+            className={`${styles.button} ${styles.buttonPrimary}`}
+          >
+            {loading ? 'Loading...' : 'Load Status'}
+          </button>
 
-        {notes.length > 0 && (
-          <div className={styles.notesContainer}>
-            {notes.map((walletNotes, idx) => (
-              <div key={idx} className={styles.walletNotes}>
-                <div className={styles.walletTitle}>Wallet: {walletNotes.wallet}</div>
-                <pre className={styles.codeBlock}>
+          {status && (
+            <pre className={debugStyles.codeBlock}>
+              {JSON.stringify(status, null, 2)}
+            </pre>
+          )}
+        </section>
+
+        {/* Section 2: LocalStorage Notes */}
+        <section className={debugStyles.section}>
+          <h2 className={debugStyles.sectionTitle}>2. Notes in LocalStorage</h2>
+          <button 
+            onClick={loadNotes}
+            className={`${styles.button} ${debugStyles.buttonSecondary}`}
+          >
+            Load Notes
+          </button>
+
+          {notes.length > 0 && (
+            <div className={debugStyles.notesContainer}>
+              {notes.map((walletNotes, idx) => (
+                <div key={idx} className={debugStyles.walletNotes}>
+                  <div className={debugStyles.walletTitle}>Wallet: {walletNotes.wallet}</div>
+                  <pre className={debugStyles.codeBlock}>
                   {JSON.stringify(walletNotes.notes, null, 2)}
                 </pre>
               </div>
@@ -205,98 +214,99 @@ export default function DebugIndexerPage() {
         )}
       </section>
 
-      {/* Section 3: Manual Testing */}
-      <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>3. Manual Test</h2>
-        
-        <div className={styles.inputGroup}>
-          <label className={styles.label}>
-            Circuit:
-            <select 
-              value={testCircuit} 
-              onChange={(e) => setTestCircuit(e.target.value as 'shield' | 'transfer' | 'unshield')}
-              className={styles.select}
+        {/* Section 3: Manual Testing */}
+        <section className={debugStyles.section}>
+          <h2 className={debugStyles.sectionTitle}>3. Manual Test</h2>
+          
+          <div className={debugStyles.inputGroup}>
+            <label className={styles.label}>
+              Circuit:
+              <select 
+                value={testCircuit} 
+                onChange={(e) => setTestCircuit(e.target.value as 'shield' | 'transfer' | 'unshield')}
+                className={debugStyles.select}
+              >
+                <option value="shield">Shield</option>
+                <option value="transfer">Transfer</option>
+                <option value="unshield">Unshield</option>
+              </select>
+            </label>
+          </div>
+
+          <div className={debugStyles.inputGroup}>
+            <label className={styles.label}>
+              Commitment (hex or decimal):
+            </label>
+            <input
+              type="text"
+              value={testCommitment}
+              onChange={(e) => setTestCommitment(e.target.value)}
+              placeholder="0x1234... or 1234567890..."
+              className={styles.input}
+            />
+          </div>
+
+          <div className={debugStyles.buttonRow}>
+            <button 
+              onClick={handleAddCommitment}
+              disabled={loading || !testCommitment}
+              className={`${styles.button} ${debugStyles.buttonWarning}`}
             >
-              <option value="shield">Shield</option>
-              <option value="transfer">Transfer</option>
-              <option value="unshield">Unshield</option>
-            </select>
-          </label>
-        </div>
+              Add to Indexer
+            </button>
 
-        <div className={styles.inputGroup}>
-          <label className={styles.label}>
-            Commitment (hex or decimal):
-          </label>
-          <input
-            type="text"
-            value={testCommitment}
-            onChange={(e) => setTestCommitment(e.target.value)}
-            placeholder="0x1234... or 1234567890..."
-            className={styles.input}
-          />
-        </div>
-
-        <div className={styles.buttonRow}>
-          <button 
-            onClick={handleAddCommitment}
-            disabled={loading || !testCommitment}
-            className={`${styles.button} ${styles.buttonWarning}`}
-          >
-            Add to Indexer
-          </button>
-
-          <button 
-            onClick={handleTestMerkleProof}
-            disabled={loading || !testCommitment}
-            className={`${styles.button} ${styles.buttonPurple}`}
-          >
-            Get Merkle Proof
-          </button>
-        </div>
-
-        {addResult && (
-          <div className={styles.resultSection}>
-            <h3 className={styles.resultTitle}>✅ Add Result:</h3>
-            <pre className={styles.codeBlock}>
-              {JSON.stringify(addResult, null, 2)}
-            </pre>
+            <button 
+              onClick={handleTestMerkleProof}
+              disabled={loading || !testCommitment}
+              className={`${styles.button} ${debugStyles.buttonPurple}`}
+            >
+              Get Merkle Proof
+            </button>
           </div>
-        )}
 
-        {proofResult && (
-          <div className={styles.resultSection}>
-            <h3 className={styles.resultTitle}>✅ Proof Result:</h3>
-            <pre className={styles.codeBlock}>
-              {JSON.stringify(proofResult, null, 2)}
-            </pre>
-            <div className={`${styles.proofStatus} ${
-              proofResult.path.length === 20 
-                ? styles.proofStatusSuccess 
-                : styles.proofStatusError
-            }`}>
-              {proofResult.path.length === 20 
-                ? `✅ Path has correct length (20)` 
-                : `❌ Path has wrong length (${proofResult.path.length}, expected 20)`}
+          {addResult && (
+            <div className={debugStyles.resultSection}>
+              <h3 className={debugStyles.resultTitle}>✅ Add Result:</h3>
+              <pre className={debugStyles.codeBlock}>
+                {JSON.stringify(addResult, null, 2)}
+              </pre>
             </div>
-          </div>
-        )}
-      </section>
+          )}
 
-      {/* Section 4: Quick Actions */}
-      <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>4. Quick Actions</h2>
-        <p className={styles.helpText}>
-          Click &quot;Load Notes&quot; above, then copy a commitment from your notes and use it to test.
-        </p>
-        <div className={styles.workflow}>
-          <div className={styles.workflowTitle}>Workflow:</div>
-          1. Load Status → Check tree counts<br />
-          2. Load Notes → Find a commitment<br />
-          3. Paste commitment → Add to Indexer<br />
-          4. Get Merkle Proof → Verify path has 20 elements
-        </div>
-      </section>
+          {proofResult && (
+            <div className={debugStyles.resultSection}>
+              <h3 className={debugStyles.resultTitle}>✅ Proof Result:</h3>
+              <pre className={debugStyles.codeBlock}>
+                {JSON.stringify(proofResult, null, 2)}
+              </pre>
+              <div className={`${debugStyles.proofStatus} ${
+                proofResult.path.length === 20 
+                  ? debugStyles.proofStatusSuccess 
+                  : debugStyles.proofStatusError
+              }`}>
+                {proofResult.path.length === 20 
+                  ? `✅ Path has correct length (20)` 
+                  : `❌ Path has wrong length (${proofResult.path.length}, expected 20)`}
+              </div>
+            </div>
+          )}
+        </section>
+
+        {/* Section 4: Quick Actions */}
+        <section className={debugStyles.section}>
+          <h2 className={debugStyles.sectionTitle}>4. Quick Actions</h2>
+          <p className={debugStyles.helpText}>
+            Click &quot;Load Notes&quot; above, then copy a commitment from your notes and use it to test.
+          </p>
+          <div className={debugStyles.workflow}>
+            <div className={debugStyles.workflowTitle}>Workflow:</div>
+            1. Load Status → Check tree counts<br />
+            2. Load Notes → Find a commitment<br />
+            3. Paste commitment → Add to Indexer<br />
+            4. Get Merkle Proof → Verify path has 20 elements
+          </div>
+        </section>
+      </div>
     </div>
   );
 }

@@ -3,7 +3,6 @@
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { PublicKey, TransactionInstruction, Transaction, SystemProgram } from '@solana/web3.js';
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import Link from 'next/link';
 import { deriveBlindingFactor, getNextNoteIndex } from '../../lib/notes';
 import { computeCommitment, fieldToBuffer, bufferToField } from '../../lib/crypto';
 import {
@@ -15,6 +14,7 @@ import { generateProof, decodeProof } from '../../lib/proofService';
 import { Note, ProcessingStep, TransferInput } from '../../lib/types';
 import { useWalletData } from '../context/WalletDataContext';
 import styles from '../components/TransactionLayout.module.css';
+import Navigation from '../components/Navigation';
 
 const PROGRAM_ID = new PublicKey('Hza5rjYmJnoYsjsgsuxLkyxLoWVo6RCUZxCB3x17v8qz');
 const TRANSFER_DISCRIMINATOR = Buffer.from([131, 57, 253, 234, 98, 101, 37, 157]);
@@ -401,10 +401,9 @@ export default function TransferPage() {
 
   return (
     <div className={styles.page}>
+      <Navigation />
+      
       <header className={styles.header}>
-        <Link href="/" className={styles.backButton}>
-          ← Back to Home
-        </Link>
         <h1 className={styles.title}>🔄 Private Transfer</h1>
         <p className={styles.description}>Transfer funds within the privacy pool anonymously</p>
       </header>
@@ -412,13 +411,13 @@ export default function TransferPage() {
       <div className={styles.container}>
         {!publicKey ? (
           <div className={styles.card}>
-            <p style={{ textAlign: 'center', color: 'var(--foreground-secondary)' }}>
+            <p className={styles.emptyState}>
               Please connect your wallet to continue
             </p>
           </div>
         ) : availableNotes.length === 0 ? (
           <div className={styles.card}>
-            <p style={{ textAlign: 'center', color: 'var(--foreground-secondary)' }}>
+            <p className={styles.emptyState}>
               No private balance available. Shield some SOL first.
             </p>
           </div>
@@ -450,18 +449,8 @@ export default function TransferPage() {
             )}
             <div className={styles.inputSection}>
               <label className={styles.label}>Your Private Balance:</label>
-              <div style={{ 
-                padding: '1rem', 
-                background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%)',
-                border: '1px solid rgba(102, 126, 234, 0.2)',
-                borderRadius: '12px',
-                fontSize: '1.5rem',
-                fontWeight: '700',
-                color: '#667eea',
-                textAlign: 'center',
-                marginBottom: '1rem'
-              }}>
-                {totalBalance} SOL
+              <div className={styles.feeDisplay}>
+                <span className={styles.feeAmount}>{totalBalance} SOL</span>
               </div>
             </div>
 

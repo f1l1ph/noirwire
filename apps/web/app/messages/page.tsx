@@ -1,15 +1,14 @@
 'use client';
 
 import { useEffect, useState, useRef, FormEvent, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
 import { useWallet } from '@solana/wallet-adapter-react';
 import {
-  ArrowLeftIcon,
   PlusIcon,
   PaperAirplaneIcon,
   ChatBubbleLeftRightIcon,
 } from '@heroicons/react/24/outline';
 import styles from './page.module.css';
+import Navigation from '../components/Navigation';
 import {
   initializeSupabase,
   getConversations,
@@ -38,7 +37,6 @@ import {
 import LoadingSkeleton from '../components/LoadingSkeleton';
 
 export default function MessagesPage() {
-  const router = useRouter();
   const { publicKey, connected } = useWallet();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
@@ -430,20 +428,18 @@ export default function MessagesPage() {
         </div>
       </div>
     );
-  }
+  };
 
   return (
     <div className={styles.page}>
-      {/* Header */}
+      {/* Universal Navigation */}
+      <Navigation />
+      
+      {/* Page Header */}
       <header className={styles.header}>
         <div className={styles.headerContent}>
-          <div className={styles.headerTitle}>
-            <button className={styles.backButton} onClick={() => router.push('/dashboard')}>
-              <ArrowLeftIcon style={{ width: '1rem', height: '1rem' }} />
-              Back to Dashboard
-            </button>
-            <h1>Secure Messages</h1>
-          </div>
+          <h1>Secure Messages</h1>
+          <p>End-to-end encrypted messaging</p>
         </div>
       </header>
 

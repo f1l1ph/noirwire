@@ -9,7 +9,6 @@ import {
   SendTransactionError,
 } from '@solana/web3.js';
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
 import { bufferToField } from '../../lib/crypto';
 import { getIndexerSyncStatus } from '../../lib/indexerClient';
 import {
@@ -22,6 +21,7 @@ import { generateProof, decodeProof } from '../../lib/proofService';
 import { Note, ProcessingStep, UnshieldInput } from '../../lib/types';
 import { useWalletData } from '../context/WalletDataContext';
 import styles from '../components/TransactionLayout.module.css';
+import Navigation from '../components/Navigation';
 
 const PROGRAM_ID = new PublicKey('Hza5rjYmJnoYsjsgsuxLkyxLoWVo6RCUZxCB3x17v8qz');
 const UNSHIELD_DISCRIMINATOR = Buffer.from([136, 159, 238, 158, 125, 27, 217, 224]);
@@ -494,10 +494,9 @@ export default function UnshieldPage() {
 
   return (
     <div className={styles.page}>
+      <Navigation />
+      
       <header className={styles.header}>
-        <Link href="/" className={styles.backButton}>
-          ← Back to Home
-        </Link>
         <h1 className={styles.title}>🔓 Unshield (Withdraw)</h1>
         <p className={styles.description}>Withdraw funds from the privacy pool to your wallet</p>
       </header>
@@ -505,13 +504,13 @@ export default function UnshieldPage() {
       <div className={styles.container}>
         {!publicKey ? (
           <div className={styles.card}>
-            <p style={{ textAlign: 'center', color: 'var(--foreground-secondary)' }}>
+            <p className={styles.emptyState}>
               Please connect your wallet to continue
             </p>
           </div>
         ) : availableNotes.length === 0 ? (
           <div className={styles.card}>
-            <p style={{ textAlign: 'center', color: 'var(--foreground-secondary)' }}>
+            <p className={styles.emptyState}>
               No private balance available. Shield some SOL first.
             </p>
           </div>
