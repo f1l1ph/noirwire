@@ -19,13 +19,9 @@ railway-link: ## Link Railway project (API only, not monorepo root)
 	@railway link
 
 railway-vars: ## Set Railway environment variables
-	@echo "🔧 Setting Railway environment variables..."
+	@echo "🔧 Setting Railway environment variables from config.json..."
 	@echo ""
-	@railway variables --set "NODE_ENV=production"
-	@railway variables --set "PORT=3000"
-	@railway variables --set "SOLANA_RPC_URL=https://api.devnet.solana.com"
-	@railway variables --set "NOIRWIRE_PROGRAM_ID=Hza5rjYmJnoYsjsgsuxLkyxLoWVo6RCUZxCB3x17v8qz"
-	@railway variables --set "SOLANA_COMMITMENT=confirmed"
+	@node scripts/set-railway-vars.js
 	@echo ""
 	@echo "⚠️  IMPORTANT: You still need to set these variables manually in Railway dashboard:"
 	@echo "   - SUPABASE_URL (your Supabase project URL)"

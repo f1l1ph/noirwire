@@ -1,0 +1,18 @@
+{
+  "urls": {
+    "api": "https://noirwireapi-production.up.railway.app",
+    "frontend": ""
+  },
+  "solana": {
+    "programId": "Hza5rjYmJnoYsjsgsuxLkyxLoWVo6RCUZxCB3x17v8qz",
+    "commitment": "confirmed"
+  },
+  "cors": {
+    "allowedOrigins": [
+      "https://noirwire.vercel.app",
+      "http://localhost:3000",
+      "http://localhost:3001",
+      "https://noirwire.com"
+    ]
+  }
+}

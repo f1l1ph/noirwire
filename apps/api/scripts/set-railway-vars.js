@@ -7,12 +7,14 @@
 
 const { execSync } = require('child_process');
 
+const config = require('../../../config.json');
+
 const variables = {
   NODE_ENV: 'production',
   PORT: '3000',
-  SOLANA_RPC_URL: 'https://api.devnet.solana.com',
-  NOIRWIRE_PROGRAM_ID: 'Hza5rjYmJnoYsjsgsuxLkyxLoWVo6RCUZxCB3x17v8qz',
-  SOLANA_COMMITMENT: 'confirmed',
+  SOLANA_RPC_URL: 'https://api.devnet.solana.com', // devnet for now
+  NOIRWIRE_PROGRAM_ID: config.solana.programId,
+  SOLANA_COMMITMENT: config.solana.commitment,
 };
 
 const manualVariables = [

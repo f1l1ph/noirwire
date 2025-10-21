@@ -5,9 +5,10 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // CORS configuration - supports both local and production
+  const config = await import('../../../config.json');
   const allowedOrigins = process.env.CORS_ORIGINS
     ? process.env.CORS_ORIGINS.split(',')
-    : ['http://localhost:3001', 'http://localhost:3000'];
+    : config.cors.allowedOrigins;
 
   app.enableCors({
     origin: allowedOrigins,
