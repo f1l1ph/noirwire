@@ -42,7 +42,7 @@ node_modules/
 yarn-error.log
 npm-debug.log
 
-# External dependencies (already included in monorepo)
+# External dependencies (not needed - proofs are in apps/api/proofs)
 external/
 
 # Web app (deployed separately)

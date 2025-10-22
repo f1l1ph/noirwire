@@ -24,7 +24,8 @@ export interface ProofData {
 @Injectable()
 export class VerifierService {
   private readonly logger = new Logger(VerifierService.name);
-  private projectRoot = path.resolve(__dirname, '../../../..');
+  // Point to the proofs directory bundled with the API
+  private proofsRoot = path.resolve(__dirname, '../../proofs');
 
   // Cache verification keys in memory for performance
   private vkCache: Map<string, any> = new Map();
@@ -94,16 +95,8 @@ export class VerifierService {
       return this.vkCache.get(circuit);
     }
 
-    // Load from filesystem
-    const vkPath = path.join(
-      this.projectRoot,
-      'external',
-      'noirwire-contracts',
-      'zk-circuits',
-      'build',
-      circuit,
-      'vk.json',
-    );
+    // Load from proofs directory
+    const vkPath = path.join(this.proofsRoot, circuit, 'vk.json');
 
     try {
       const vkJson = await fs.readFile(vkPath, 'utf-8');

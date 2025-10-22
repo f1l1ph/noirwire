@@ -9,7 +9,6 @@ import {
   SendTransactionError,
 } from '@solana/web3.js';
 import { useState, useEffect } from 'react';
-import { bufferToField } from '../../lib/crypto';
 import { getIndexerSyncStatus } from '../../lib/indexerClient';
 import {
   deriveSecretKey,
@@ -88,7 +87,13 @@ export default function UnshieldPage() {
     if (availableNotes.length === 0) {
       setStep('error');
       setStatus('❌ No private balance available');
-      setErrorDetails('You need to shield some SOL first before you can unshield. Go to the Shield page to deposit SOL into the privacy pool.');
+      setErrorDetails(`You need to shield some SOL first. Here's what to do:\n\n` +
+        `1. Go to the "Shield" tab\n` +
+        `2. Enter the amount you want to shield (0.001 SOL minimum)\n` +
+        `3. Click "Shield SOL" and wait for confirmation\n` +
+        `4. Your private balance will be updated immediately\n` +
+        `5. Once Merkle roots are published on-chain, you can unshield\n\n` +
+        `Currently: 0 SOL shielded`);
       return;
     }
 
@@ -232,33 +237,45 @@ export default function UnshieldPage() {
           if (statusEntry?.status === 'published') {
             const seenAt = new Date(statusEntry.updatedAt).toLocaleTimeString();
             setStatus(
-              `Merkle root confirmed on-chain (updated ${seenAt}). Continuing...`,
+              `✅ Merkle root published on-chain (${seenAt}). Continuing unshield...`,
             );
             return;
           }
 
           const latestShieldRoot = syncStatus?.indexerStatus.latestRoots.shield;
-          const parts = [`Waiting for Merkle root to publish on-chain (attempt ${attempt + 1}/${maxAttempts})...`];
+          const parts = [
+            `⏳ Merkle root pending on-chain (attempt ${attempt + 1}/${maxAttempts})`,
+            `\n\n📝 What's happening:`,
+            `• Your note has been added to the Merkle tree ✓`,
+            `• Waiting for the root to be published on-chain...`,
+            `• This happens automatically every ~30 seconds`,
+          ];
+          
           if (statusEntry) {
-            parts.push(`Current status: ${statusEntry.status}`);
+            parts.push(`\n📊 Root Status: ${statusEntry.status}`);
             if (statusEntry.signature) {
-              parts.push(`Signature: ${statusEntry.signature}`);
+              parts.push(`   Transaction: ${statusEntry.signature.slice(0, 16)}...`);
             }
             if (statusEntry.error) {
-              parts.push(`Last error: ${statusEntry.error}`);
+              parts.push(`   ⚠️ Last error: ${statusEntry.error}`);
             }
           } else if (latestShieldRoot?.root) {
-            parts.push(
-              `Latest shield root: ${latestShieldRoot.root.slice(0, 16)}... (updated ${new Date(latestShieldRoot.updatedAt).toLocaleTimeString()})`,
-            );
+            parts.push(`\n🌳 Latest root: ${latestShieldRoot.root.slice(0, 16)}...`);
+            parts.push(`   Updated: ${new Date(latestShieldRoot.updatedAt).toLocaleTimeString()}`);
           }
+          
+          parts.push(`\n💡 Tip: You can cancel and try again later. Your note is safely stored.`);
+          
           setStatus(parts.join(' '));
 
           await new Promise((resolve) => setTimeout(resolve, 5000));
         }
 
         throw new Error(
-          'Merkle root still pending on-chain. Please wait a little longer and try again.',
+          `Merkle root pending on-chain after 60 seconds. This usually means:\n\n` +
+          `1. The indexer is busy publishing roots (wait 1-2 minutes and try again)\n` +
+          `2. Network is congested (Solana network is slow)\n\n` +
+          `Your note is safely stored. You can try unshielding again later. Check the debug page at http://localhost:3001/debug-indexer for more details.`
         );
       };
 
@@ -278,21 +295,19 @@ export default function UnshieldPage() {
       // Generate note ID
       const noteId = generateNoteId(selectedNote.commitment);
       
-      // Convert full 32-byte public key to field element
-      const senderPk = bufferToField(new Uint8Array(publicKey.toBuffer()));
+      // Compute nullifier (must be done before proof input)
+      const { computeNullifier } = await import('../../lib/privacyUtils');
+      const nullifier = await computeNullifier(secretKey, noteId);
       
-      // Build proof input
+      // Build proof input - only include fields the circuit expects
       const proofInput: UnshieldInput = {
-        secret_sk: secretKey.toString(),
-        old_recipient_pk: senderPk.toString(),
-        old_amount: oldAmountLamports.toString(),
-        old_blinding: selectedNote.blinding,
-        note_id: noteId.toString(),
-        merkle_path: path,
-        merkle_path_positions: pathPositions,
-        recipient_lo: recipientLo.toString(),
-        recipient_hi: recipientHi.toString(),
-        public_amount: unshieldAmountLamports.toString(),
+        root: rootHex,
+        nullifier: nullifier.toString(),
+        secret: secretKey.toString(),
+        amount: unshieldAmountLamports.toString(),
+        blinding: selectedNote.blinding,
+        path_elements: path,
+        path_index: pathPositions,
         fee: feeLamports.toString(),
       };
       // Log the payload for debugging
@@ -316,9 +331,7 @@ export default function UnshieldPage() {
       const publicInputsLen = Buffer.alloc(4);
       publicInputsLen.writeUInt32LE(6, 0); // root, nullifier, recipient_lo, recipient_hi, amount, fee
 
-      // Compute nullifier (public input 2) - Poseidon(secret_sk, note_id)
-      const { computeNullifier } = await import('../../lib/privacyUtils');
-      const nullifier = await computeNullifier(secretKey, noteId);
+      // Nullifier already computed for proof input
       const nullifierBytes = toLittleEndianBytes(nullifier, 32);
 
       // Recipient limbs (public input 3, 4)
@@ -531,6 +544,17 @@ export default function UnshieldPage() {
                   </option>
                 ))}
               </select>
+              
+              {selectedNote && (
+                <div className={styles.noteStatusBox}>
+                  <p>📝 Note Status:</p>
+                  <p>✓ Added to Merkle tree</p>
+                  <p>✓ Amount: {selectedNote.amount} SOL</p>
+                  <p>✓ Transaction: {selectedNote.txSignature ? `${selectedNote.txSignature.slice(0, 12)}...` : 'N/A'}</p>
+                  <p>Ready to unshield when Merkle roots are published on-chain</p>
+                </div>
+              )}
+              
               <p className={styles.inputHint}>
                 ⚠️ You must withdraw the <strong>full note amount</strong> ({unshieldAmount} SOL)
               </p>

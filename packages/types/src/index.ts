@@ -58,17 +58,14 @@ export type ShieldInput = z.infer<typeof ShieldInputSchema>;
  * Transfer proof input
  */
 export const TransferInputSchema = z.object({
-  secret_sk: z.string(),
-  old_recipient_pk: z.string(),
-  old_amount: z.string(),
-  old_blinding: z.string(),
-  note_id: z.string(),
-  merkle_path: z.array(z.string()),
-  merkle_path_positions: z.array(z.string()),
-  new_recipient_pk: z.string(),
-  new_amount: z.string(),
-  new_blinding: z.string(),
+  root: z.string(),
+  nullifier: z.string(),
+  secret: z.string(),
+  recipient_pk: z.string(),
+  blinding: z.string(),
   fee: z.string(),
+  path_elements: z.array(z.string()),
+  path_index: z.array(z.string()),
 });
 
 export type TransferInput = z.infer<typeof TransferInputSchema>;
@@ -77,17 +74,14 @@ export type TransferInput = z.infer<typeof TransferInputSchema>;
  * Unshield proof input
  */
 export const UnshieldInputSchema = z.object({
-  secret_sk: z.string(),
-  old_recipient_pk: z.string(),
-  old_amount: z.string(),
-  old_blinding: z.string(),
-  note_id: z.string(),
-  merkle_path: z.array(z.string()),
-  merkle_path_positions: z.array(z.string()),
-  recipient_lo: z.string(),
-  recipient_hi: z.string(),
-  public_amount: z.string(),
+  root: z.string(),
+  nullifier: z.string(),
+  secret: z.string(),
+  amount: z.string(),
+  blinding: z.string(),
   fee: z.string(),
+  path_elements: z.array(z.string()),
+  path_index: z.array(z.string()),
 });
 
 export type UnshieldInput = z.infer<typeof UnshieldInputSchema>;

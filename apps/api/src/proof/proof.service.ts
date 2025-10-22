@@ -6,45 +6,64 @@ import * as snarkjs from 'snarkjs';
 @Injectable()
 export class ProofService {
   private readonly logger = new Logger(ProofService.name);
-  // From apps/api/src/proof, go up to workspace root
-  private projectRoot = path.resolve(__dirname, '../../../..');
+  // Point to the proofs directory bundled with the API
+  private proofsRoot = path.resolve(__dirname, '../../proofs');
 
   async generateProof(
     circuit: 'shield' | 'transfer' | 'unshield',
     input: Record<string, any>,
   ) {
-    const circuitDir = path.join(
-      this.projectRoot,
-      'external',
-      'noirwire-contracts',
-      'zk-circuits',
-      'build',
-      circuit,
-    );
+    const requestId = Math.random().toString(36).substr(2, 9);
+    const circuitDir = path.join(this.proofsRoot, circuit);
+
+    this.logger.log(`[${requestId}] Generating ${circuit} proof`);
+    this.logger.debug(`[${requestId}] Circuit dir: ${circuitDir}`);
 
     // Ensure build artifacts exist
-    const wasmPath = path.join(circuitDir, `${circuit}_js`, `${circuit}.wasm`);
+    const wasmPath = path.join(circuitDir, `${circuit}.wasm`);
     const zkeyPath = path.join(circuitDir, `${circuit}_final.zkey`);
 
-    if (!(await this.exists(wasmPath)) || !(await this.exists(zkeyPath))) {
-      throw new Error(
-        `Circuit artifacts missing for ${circuit}. Run the circuit build in external/noirwire-contracts/zk-circuits and ensure ${circuit}_js/${circuit}.wasm and ${circuit}_final.zkey exist.`,
-      );
+    this.logger.debug(`[${requestId}] Looking for WASM: ${wasmPath}`);
+    this.logger.debug(`[${requestId}] Looking for ZKEY: ${zkeyPath}`);
+
+    if (!(await this.exists(wasmPath))) {
+      const msg = `WASM artifact missing for ${circuit}: ${wasmPath}`;
+      this.logger.error(`[${requestId}] ${msg}`);
+      throw new Error(msg);
     }
 
+    if (!(await this.exists(zkeyPath))) {
+      const msg = `ZKEY artifact missing for ${circuit}: ${zkeyPath}`;
+      this.logger.error(`[${requestId}] ${msg}`);
+      throw new Error(msg);
+    }
+
+    this.logger.log(`[${requestId}] ✓ Artifacts found`);
+
     try {
-      // Use snarkjs library directly to generate proof
-      this.logger.log(`[proof] Generating ${circuit} proof with snarkjs...`);
-      this.logger.log(
-        `[proof] Input: ${JSON.stringify(input).slice(0, 200)}...`,
-      );
+      // Log input keys but not full values (could be large)
+      const inputKeys = Object.keys(input).sort();
+      this.logger.log(`[${requestId}] Input keys: ${inputKeys.join(', ')}`);
+
+      // Validate required fields for each circuit
+      this.validateInput(circuit, input, requestId);
+
+      this.logger.log(`[${requestId}] Calling snarkjs.groth16.fullProve...`);
+      const proofStartTime = Date.now();
+
       const { proof, publicSignals } = await snarkjs.groth16.fullProve(
         input,
         wasmPath,
         zkeyPath,
       );
 
-      this.logger.log(`[proof] Proof generated successfully for ${circuit}`);
+      const proofGenTime = Date.now() - proofStartTime;
+      this.logger.log(
+        `[${requestId}] ✓ Proof generated in ${proofGenTime}ms`,
+      );
+      this.logger.debug(
+        `[${requestId}] Public signals count: ${publicSignals.length}`,
+      );
 
       // Serialize proof fields into 32-byte little-endian buffers
       const toLE32 = (value: string) => {
@@ -63,6 +82,10 @@ export class ProofService {
       const B = proof.pi_b; // [[b00,b01],[b10,b11],[1,0]]
       const C = proof.pi_c; // [c0, c1, c2]
 
+      this.logger.debug(
+        `[${requestId}] Serializing proof (A=${A[0].toString().slice(0, 10)}..., B length=${B.length}, C=${C[0].toString().slice(0, 10)}...)`,
+      );
+
       const parts: Buffer[] = [];
       parts.push(toLE32(String(A[0])));
       parts.push(toLE32(String(A[1])));
@@ -79,18 +102,56 @@ export class ProofService {
       const proofBuf = Buffer.concat(parts);
       const proofBase64 = proofBuf.toString('base64');
 
+      this.logger.log(`[${requestId}] ✅ ${circuit} proof complete (256 bytes base64)`);
+
       return { proofBase64, publicSignals };
     } catch (err: any) {
-      this.logger.error(`Proof generation failed for ${circuit}`);
-      this.logger.error(`Error message: ${err?.message || String(err)}`);
-      this.logger.error(`Error type: ${err?.name || 'unknown'}`);
+      this.logger.error(
+        `[${requestId}] ❌ Proof generation failed for ${circuit}`,
+      );
+      this.logger.error(`[${requestId}] Error: ${err?.message || String(err)}`);
+      this.logger.error(`[${requestId}] Type: ${err?.constructor?.name || 'unknown'}`);
+
       if (err?.stack) {
-        this.logger.error(`Stack trace: ${err.stack.slice(0, 500)}`);
+        const stackLines = err.stack.split('\n').slice(0, 5);
+        this.logger.debug(`[${requestId}] Stack: ${stackLines.join(' | ')}`);
       }
+
+      // Provide more specific error messages
+      if (err?.message?.includes('expected')) {
+        throw new Error(
+          `Proof input validation failed: ${err.message}. ` +
+          `Expected fields: ${Object.keys(input).join(', ')}`,
+        );
+      }
+
       throw new Error(
-        `Proof generation failed: ${err?.message || String(err)}`,
+        `Proof generation failed for ${circuit}: ${err?.message || String(err)}`,
       );
     }
+  }
+
+  private validateInput(
+    circuit: 'shield' | 'transfer' | 'unshield',
+    input: Record<string, any>,
+    requestId: string,
+  ) {
+    const requiredFields: Record<string, string[]> = {
+      shield: ['recipient_pk', 'amount', 'blinding'],
+      transfer: ['root', 'nullifier', 'recipient_pk', 'fee', 'blinding', 'path_elements', 'path_index'],
+      unshield: ['root', 'nullifier', 'secret', 'amount', 'blinding', 'path_elements', 'path_index'],
+    };
+
+    const required = requiredFields[circuit];
+    const missing = required.filter((field) => !(field in input));
+
+    if (missing.length > 0) {
+      const msg = `Missing required fields for ${circuit}: ${missing.join(', ')}. Got: ${Object.keys(input).join(', ')}`;
+      this.logger.warn(`[${requestId}] ${msg}`);
+      throw new Error(msg);
+    }
+
+    this.logger.debug(`[${requestId}] ✓ All required fields present for ${circuit}`);
   }
 
   private async exists(p: string) {

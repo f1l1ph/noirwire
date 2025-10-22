@@ -177,7 +177,7 @@ export default function TransferPage() {
         }
         throw proofErr; // Re-throw other errors
       }
-      const { path, pathPositions } = merkleProof;
+      const { path, pathPositions, rootHex } = merkleProof;
       
       // Parse recipient ZK address (hex format like 0x1234...)
       let recipientPk: bigint;
@@ -208,22 +208,20 @@ export default function TransferPage() {
       // Generate note ID
       const noteId = generateNoteId(selectedNote.commitment);
       
-      // Convert full 32-byte public key to field element
-      const senderPk = bufferToField(new Uint8Array(publicKey.toBuffer()));
+      // Compute nullifier early (needed for both proof input and transaction)
+      const { computeNullifier } = await import('../../lib/privacyUtils');
+      const nullifier = await computeNullifier(secretKey, noteId);
       
-      // Build proof input
+      // Build proof input - only include fields the circuit expects
       const proofInput: TransferInput = {
-        secret_sk: secretKey.toString(),
-        old_recipient_pk: senderPk.toString(),
-        old_amount: oldAmountLamports.toString(),
-        old_blinding: selectedNote.blinding,
-        note_id: noteId.toString(),
-        merkle_path: path,
-        merkle_path_positions: pathPositions,
-        new_recipient_pk: recipientPk.toString(),
-        new_amount: transferAmountLamports.toString(),
-        new_blinding: newBlinding.toString(),
+        root: rootHex,
+        nullifier: nullifier.toString(),
+        secret: secretKey.toString(),
+        recipient_pk: recipientPk.toString(),
+        blinding: newBlinding.toString(),
         fee: feeLamports.toString(),
+        path_elements: path,
+        path_index: pathPositions,
       };
       
       const { proofBase64 } = await generateProof('transfer', proofInput);
@@ -244,9 +242,7 @@ export default function TransferPage() {
       const publicInputsLen = Buffer.alloc(4);
       publicInputsLen.writeUInt32LE(2, 0);
       
-      // Compute nullifier (public input 1) - Poseidon(secret_sk, note_id)
-      const { computeNullifier } = await import('../../lib/privacyUtils');
-      const nullifier = await computeNullifier(secretKey, noteId);
+      // Nullifier already computed for proof input
       const nullifierBytes = fieldToBuffer(nullifier);
       
       // New commitment (public input 2)

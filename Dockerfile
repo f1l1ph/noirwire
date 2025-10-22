@@ -13,7 +13,7 @@ COPY apps/api/package.json ./apps/api/
 # Install all dependencies (including devDeps needed for build)
 RUN yarn install
 
-# Copy source code
+# Copy source code and circuit artifacts
 COPY . .
 
 # Build workspace libraries
@@ -21,6 +21,9 @@ RUN yarn --cwd packages/api build
 
 # Build API application
 RUN yarn --cwd apps/api build
+
+# Copy proofs folder into dist (not compiled by NestJS)
+RUN cp -r /app/apps/api/proofs /app/apps/api/dist/apps/api/
 
 # Production stage - runtime only
 FROM node:20-slim
@@ -41,6 +44,9 @@ RUN yarn install --production
 # Copy compiled application from builder
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
 COPY --from=builder /app/packages/api/dist ./packages/api/dist
+
+# Copy circuit proof artifacts (required for proof generation)
+COPY --from=builder /app/apps/api/proofs ./apps/api/proofs
 
 # Create non-root user for security
 RUN useradd -m -u 1001 appuser && chown -R appuser:appuser /app

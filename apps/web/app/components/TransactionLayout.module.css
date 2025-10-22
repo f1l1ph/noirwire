@@ -446,6 +446,33 @@
   font-size: 1rem;
 }
 
+/* Note Status Indicator */
+.noteStatusBox {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background: rgba(0, 102, 204, 0.08);
+  border-left: 4px solid #0066cc;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.noteStatusBox p {
+  margin: 0.25rem 0;
+  font-size: 0.85rem;
+  color: var(--foreground);
+}
+
+.noteStatusBox p:first-child {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.noteStatusBox p:last-child {
+  margin-top: 0.5rem;
+  font-style: italic;
+  color: var(--foreground-secondary);
+}
+
 @media (max-width: 768px) {
   .title {
     font-size: 2rem;

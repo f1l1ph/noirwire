@@ -33,7 +33,7 @@ dist/
 .next/
 build/
 
-# External contracts (not needed for API)
+# External contracts (not needed - proofs are bundled in apps/api/proofs)
 
 external/
 

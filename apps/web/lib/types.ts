@@ -78,38 +78,29 @@ export interface ShieldInput {
  * Transfers value from one note to another without revealing amounts
  */
 export interface TransferInput {
+  /** Merkle root */
+  root: string;
+
+  /** Nullifier to prevent double-spend */
+  nullifier: string;
+
   /** Secret key of sender */
-  secret_sk: string;
+  secret: string;
 
-  /** Old (input) note recipient public key */
-  old_recipient_pk: string;
+  /** Recipient public key */
+  recipient_pk: string;
 
-  /** Old (input) note amount */
-  old_amount: string;
-
-  /** Old (input) note blinding factor */
-  old_blinding: string;
-
-  /** Note ID for nullifier generation */
-  note_id: string;
-
-  /** Merkle proof path (sibling hashes) */
-  merkle_path: string[];
-
-  /** Merkle proof positions (left=0, right=1) */
-  merkle_path_positions: string[];
-
-  /** New (output) note recipient public key */
-  new_recipient_pk: string;
-
-  /** New (output) note amount */
-  new_amount: string;
-
-  /** New (output) note blinding factor */
-  new_blinding: string;
+  /** Blinding factor for output note */
+  blinding: string;
 
   /** Transfer fee */
   fee: string;
+
+  /** Merkle proof path (sibling hashes) */
+  path_elements: string[];
+
+  /** Merkle proof positions (left=0, right=1) */
+  path_index: string[];
 }
 
 /**
@@ -117,38 +108,29 @@ export interface TransferInput {
  * Withdraws from private note to public address
  */
 export interface UnshieldInput {
+  /** Merkle root */
+  root: string;
+
+  /** Nullifier to prevent double-spend */
+  nullifier: string;
+
   /** Secret key of note owner */
-  secret_sk: string;
-
-  /** Old (input) note recipient public key */
-  old_recipient_pk: string;
-
-  /** Old (input) note amount */
-  old_amount: string;
-
-  /** Old (input) note blinding factor */
-  old_blinding: string;
-
-  /** Note ID for nullifier generation */
-  note_id: string;
-
-  /** Merkle proof path (sibling hashes) */
-  merkle_path: string[];
-
-  /** Merkle proof positions (left=0, right=1) */
-  merkle_path_positions: string[];
-
-  /** Lower 128 bits of recipient address */
-  recipient_lo: string;
-
-  /** Upper 128 bits of recipient address */
-  recipient_hi: string;
+  secret: string;
 
   /** Amount to withdraw publicly */
-  public_amount: string;
+  amount: string;
+
+  /** Blinding factor for the note */
+  blinding: string;
 
   /** Withdrawal fee */
   fee: string;
+
+  /** Merkle proof path (sibling hashes) */
+  path_elements: string[];
+
+  /** Merkle proof positions (left=0, right=1) */
+  path_index: string[];
 }
 
 /**

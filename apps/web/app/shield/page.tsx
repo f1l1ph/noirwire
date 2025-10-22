@@ -197,7 +197,16 @@ export default function ShieldPage() {
       });
       
       setStep('success');
-      setStatus('✅ Shield successful! Your note has been saved and added to Merkle tree.');
+      setStatus(`✅ Shield successful! 
+      
+📝 Note Details:
+• Private Balance: +${amount} SOL
+• Commitment: ${commitmentHex.slice(0, 16)}...
+• Added to Merkle Tree ✓
+• Transaction: ${signature.slice(0, 16)}...
+
+Your private balance is now updated. You can unshield anytime, but Merkle roots must be published on-chain first (happens automatically).`);
+      setErrorDetails('');
     } catch (err: unknown) {
       console.error('Shield error:', err);
       setStep('error');
