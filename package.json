@@ -11,7 +11,9 @@
     "dev:web": "turbo run dev --filter=web",
     "dev:api": "turbo run dev --filter=api",
     "lint": "turbo run lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "check-indexer": "node scripts/check-indexer.mjs",
+    "test-merkle": "node scripts/test-merkle-root-publishing.mjs"
   },
   "devDependencies": {
     "@repo/eslint-config": "*",

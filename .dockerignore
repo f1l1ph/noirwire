@@ -1,0 +1,55 @@
+# Version control
+.git
+.gitignore
+.gitattributes
+
+# CI/CD
+.github
+.gitlab-ci.yml
+.circleci
+
+# IDE and editors
+.vscode
+.idea
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Testing
+test/
+tests/
+*.test.ts
+*.spec.ts
+coverage/
+.nyc_output
+
+# Build artifacts (except what we need)
+dist/
+build/
+.turbo/
+.next/
+
+# Documentation
+README.md
+*.md
+docs/
+
+# Development files
+.env.local
+.env.*.local
+node_modules/
+yarn-error.log
+npm-debug.log
+
+# External dependencies (already included in monorepo)
+external/
+
+# Web app (deployed separately)
+apps/web/
+
+# Development config files
+*.local.ts
+.prettierrc*
+.eslintrc*
+jest.config.*

@@ -1,12 +1,12 @@
 # Files to exclude from Railway deployment
 
-node_modules/
+node*modules/
 .turbo/
 .git/
 .github/
 .vscode/
-_.log
-.env_
+*.log
+.env\_
 !.env.example
 
 # Test files
@@ -40,9 +40,3 @@ external/
 # Web app (deploying separately to Vercel)
 
 apps/web/
-
-# Other packages not needed for runtime
-
-packages/eslint-config/
-packages/jest-config/
-packages/ui/

@@ -1,7 +1,7 @@
 {
   "urls": {
     "api": "https://noirwireapi-production.up.railway.app",
-    "frontend": ""
+    "frontend": "https://noirwire.com"
   },
   "solana": {
     "programId": "Hza5rjYmJnoYsjsgsuxLkyxLoWVo6RCUZxCB3x17v8qz",
