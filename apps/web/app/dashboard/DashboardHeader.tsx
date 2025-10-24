@@ -9,15 +9,16 @@ import {
   EyeSlashIcon
 } from '@heroicons/react/24/outline';
 import { LAMPORTS_PER_SOL } from '@solana/web3.js';
+import { useWalletData } from '../context/WalletDataContext';
 import styles from './DashboardHeader.module.css';
 
 export default function DashboardHeader() {
   const { publicKey } = useWallet();
   const { connection } = useConnection();
+  const { privateBalance: contextPrivateBalance } = useWalletData();
   
   // Balances
   const [publicBalance, setPublicBalance] = useState<number | null>(null);
-  const [privateBalance, setPrivateBalance] = useState<number>(0);
   
   // Copy states
   const [copiedPublic, setCopiedPublic] = useState(false);
@@ -55,36 +56,6 @@ export default function DashboardHeader() {
     return () => clearInterval(interval);
   }, [publicKey, connection]);
 
-  // Calculate private balance from unspent notes
-  useEffect(() => {
-    if (!publicKey) return;
-
-    try {
-      // Dynamically import to avoid SSR issues
-      const walletAddress = publicKey.toBase58();
-      
-      // Try to get unspent notes, handle if not available
-      import('../../lib/notes').then(({ getUnspentNotes }) => {
-        try {
-          const unspentNotes = getUnspentNotes(walletAddress);
-          const totalLamports = unspentNotes.reduce((sum: bigint, note: { amount: string }) => {
-            const amount = typeof note.amount === 'string' ? BigInt(note.amount) : BigInt(0);
-            return sum + amount;
-          }, BigInt(0));
-          setPrivateBalance(Number(totalLamports) / LAMPORTS_PER_SOL);
-        } catch (err) {
-          console.warn('Failed to fetch private balance:', err);
-          setPrivateBalance(0);
-        }
-      }).catch(err => {
-        console.warn('Notes module not available:', err);
-        setPrivateBalance(0);
-      });
-    } catch (err) {
-      console.warn('Failed to calculate private balance:', err);
-      setPrivateBalance(0);
-    }
-  }, [publicKey]);
 
   const copyToClipboard = async (text: string, type: 'public' | 'private') => {
     try {
@@ -191,8 +162,14 @@ export default function DashboardHeader() {
             <div className={styles.balanceCard}>
               <div className={styles.balanceLabel}>Private Balance</div>
               <div className={styles.balanceValue}>
-                <span className={styles.amount}>{privateBalance.toFixed(4)}</span>
-                <span className={styles.currency}>SOL</span>
+                {typeof contextPrivateBalance === 'number' && !isNaN(contextPrivateBalance) ? (
+                  <>
+                    <span className={styles.amount}>{contextPrivateBalance.toFixed(4)}</span>
+                    <span className={styles.currency}>SOL</span>
+                  </>
+                ) : (
+                  <span className={styles.loading}>...</span>
+                )}
               </div>
             </div>
           </div>

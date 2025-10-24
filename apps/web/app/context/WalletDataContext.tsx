@@ -23,6 +23,8 @@ interface WalletData {
   noteCount: number;
   isLoading: boolean;
   isLoadingFromSupabase: boolean;
+  isSyncingToSupabase: boolean;
+  syncError: string | null;
 }
 
 interface WalletDataContextType extends WalletData {
@@ -31,6 +33,7 @@ interface WalletDataContextType extends WalletData {
   clearAllNotes: () => Promise<void>;
   refreshNotes: () => Promise<void>;
   getUnspentNotes: () => Note[];
+  clearSyncError: () => void;
 }
 
 const WalletDataContext = createContext<WalletDataContextType | undefined>(undefined);
@@ -40,6 +43,8 @@ export function WalletDataProvider({ children }: { children: React.ReactNode }) 
   const [notes, setNotes] = useState<Note[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingFromSupabase, setIsLoadingFromSupabase] = useState(false);
+  const [isSyncingToSupabase, setIsSyncingToSupabase] = useState(false);
+  const [syncError, setSyncError] = useState<string | null>(null);
 
   // Calculate derived state
   const unspentNotes = notes.filter(n => !n.spent);
@@ -91,26 +96,29 @@ export function WalletDataProvider({ children }: { children: React.ReactNode }) 
   }, [getStorageKey]);
 
   /**
-   * Sync notes to Supabase (optional, fails silently)
+   * Sync notes to Supabase (CRITICAL - must succeed)
+   * Throws error if sync fails so UI can display it
    */
   const syncToSupabase = useCallback(async (notesToSync: Note[]) => {
     if (!publicKey) return;
 
+    setIsSyncingToSupabase(true);
+    setSyncError(null);
+
     try {
-      console.log('=== SYNCING TO SUPABASE ===');
-      console.log(`Wallet: ${publicKey.toBase58()}`);
-      console.log(`Notes count: ${notesToSync.length}`);
+      console.log('🔄 SYNCING TO SUPABASE...');
+      console.log(`📦 Wallet: ${publicKey.toBase58()}`);
+      console.log(`📝 Notes count: ${notesToSync.length}`);
       
       const encryptedData = btoa(JSON.stringify(notesToSync));
-      console.log(`Encrypted data length: ${encryptedData.length} chars`);
+      console.log(`🔐 Encrypted data length: ${encryptedData.length} chars`);
       
       const payload = {
         walletAddress: publicKey.toBase58(),
         encryptedData,
       };
-      console.log('Payload:', JSON.stringify(payload, null, 2));
       
-      console.log(`Sending POST to: ${API_BASE_URL}/notes/upload`);
+      console.log(`📤 Sending POST to: ${API_BASE_URL}/notes/upload`);
       const response = await axios.post(
         `${API_BASE_URL}/notes/upload`,
         payload,
@@ -121,33 +129,47 @@ export function WalletDataProvider({ children }: { children: React.ReactNode }) 
         },
       );
 
-      console.log(`Response status: ${response.status} ${response.statusText}`);
+      console.log(`📊 Response status: ${response.status} ${response.statusText}`);
       
       if (response.status < 200 || response.status >= 300) {
         const errorText =
           typeof response.data === 'string'
             ? response.data
             : JSON.stringify(response.data);
-        console.error('❌ Supabase sync failed:');
+        
+        const errorMessage = `Supabase sync failed [HTTP ${response.status}]: ${errorText}`;
+        
+        console.error('❌ CRITICAL: Supabase sync failed!');
         console.error(`Status: ${response.status}`);
         console.error(`Response: ${errorText}`);
-        console.error('This may indicate:');
-        console.error('1. Table "user_notes" does not exist in Supabase');
-        console.error('2. Run supabase-schema.sql in Supabase SQL Editor');
-        console.error('3. API server issue (check API logs)');
-        return; // Fail silently for now
+        console.error('Possible causes:');
+        console.error('1. SUPABASE_URL or SUPABASE_SERVICE_KEY not set on API server');
+        console.error('2. Table "user_notes" does not exist in Supabase');
+        console.error('3. Run supabase-schema.sql in Supabase SQL Editor');
+        console.error('4. Network connectivity issue');
+        
+        setSyncError(errorMessage);
+        setIsSyncingToSupabase(false);
+        
+        // THROW ERROR - DO NOT FAIL SILENTLY
+        throw new Error(errorMessage);
       }
 
-      const result = response.data;
-      console.log('✅ Notes synced to Supabase');
-      console.log('Result:', result);
+      console.log('✅ Notes successfully synced to Supabase!');
+      setIsSyncingToSupabase(false);
     } catch (error) {
-      console.error('❌ Supabase sync error:', error);
-      console.error('Error type:', error?.constructor?.name);
-      console.error('Error message:', error instanceof Error ? error.message : String(error));
-      // Supabase is optional - fail silently
-    } finally {
-      console.log('=== SYNC COMPLETE ===');
+      const message = error instanceof Error 
+        ? error.message 
+        : String(error);
+      
+      console.error('❌ CRITICAL SUPABASE SYNC ERROR:');
+      console.error(`Error: ${message}`);
+      
+      setSyncError(message);
+      setIsSyncingToSupabase(false);
+      
+      // RE-THROW SO UI CAN DISPLAY ERROR
+      throw new Error(`Supabase sync failed: ${message}`);
     }
   }, [publicKey]);
 
@@ -262,6 +284,13 @@ export function WalletDataProvider({ children }: { children: React.ReactNode }) 
     return notes.filter(n => !n.spent);
   }, [notes]);
 
+  /**
+   * Clear sync error
+   */
+  const clearSyncError = useCallback(() => {
+    setSyncError(null);
+  }, []);
+
   // Load notes when wallet connects
   useEffect(() => {
     refreshNotes();
@@ -284,11 +313,14 @@ export function WalletDataProvider({ children }: { children: React.ReactNode }) 
     noteCount,
     isLoading,
     isLoadingFromSupabase,
+    isSyncingToSupabase,
+    syncError,
     addNote,
     markNoteAsSpent,
     clearAllNotes,
     refreshNotes,
     getUnspentNotes,
+    clearSyncError,
   };
 
   return (

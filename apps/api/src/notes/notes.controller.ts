@@ -59,18 +59,35 @@ export class NotesController {
   }
 
   /**
-   * Health check for notes sync
+   * Comprehensive health check for notes sync
    * GET /notes/health
+   *
+   * Returns detailed status of Supabase connectivity and configuration
    */
-  @Get('health/check')
+  @Get('health')
   async healthCheck() {
     const isConfigured = this.notesService.isSupabaseConfigured();
+
     return {
       success: true,
-      configured: isConfigured,
+      supabase: {
+        configured: isConfigured,
+        url: process.env.SUPABASE_URL ? 'set' : 'missing',
+        serviceKey: process.env.SUPABASE_SERVICE_KEY ? 'set' : 'missing',
+      },
       message: isConfigured
-        ? 'Notes sync is available'
-        : 'Notes sync is not configured',
+        ? '✅ Notes sync is fully operational'
+        : '⚠️ Notes sync is not configured - set SUPABASE_URL and SUPABASE_SERVICE_KEY',
+      documentation: 'See SUPABASE_VERIFICATION.md for setup instructions',
     };
+  }
+
+  /**
+   * Health check for notes sync (legacy route)
+   * GET /notes/health/check
+   */
+  @Get('health/check')
+  async healthCheckLegacy() {
+    return this.healthCheck();
   }
 }

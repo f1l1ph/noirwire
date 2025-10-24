@@ -7,6 +7,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import * as snarkjs from 'snarkjs';
 import { promises as fs } from 'fs';
 import * as path from 'path';
+import { existsSync } from 'fs';
 
 export interface VerificationResult {
   valid: boolean;
@@ -25,10 +26,36 @@ export interface ProofData {
 export class VerifierService {
   private readonly logger = new Logger(VerifierService.name);
   // Point to the proofs directory bundled with the API
-  private proofsRoot = path.resolve(__dirname, '../../proofs');
+  private proofsRoot: string;
 
   // Cache verification keys in memory for performance
   private vkCache: Map<string, any> = new Map();
+
+  constructor() {
+    const possiblePaths = [
+      path.resolve(__dirname, '../../proofs'), // From verifier/verifier.service.js to dist/apps/api/proofs ✓
+      path.resolve(__dirname, '../../../proofs'), // Legacy fallback
+      path.resolve(__dirname, '../proofs'), // Legacy fallback 2
+      path.resolve(process.cwd(), 'apps/api/proofs'), // cwd-relative
+      path.resolve(process.cwd(), 'proofs'), // root proofs
+    ];
+
+    this.proofsRoot = possiblePaths[0]; // Default
+
+    for (const p of possiblePaths) {
+      try {
+        if (existsSync(p)) {
+          this.proofsRoot = p;
+          this.logger.log(`[VerifierService] Found proofs at: ${p}`);
+          break;
+        }
+      } catch {
+        // Continue to next path
+      }
+    }
+
+    this.logger.log(`[VerifierService] Using proofs from: ${this.proofsRoot}`);
+  }
 
   /**
    * Verify a Groth16 proof against the circuit's verification key

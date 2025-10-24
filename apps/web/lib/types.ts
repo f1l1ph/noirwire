@@ -117,7 +117,7 @@ export interface UnshieldInput {
   /** Secret key of note owner */
   secret: string;
 
-  /** Amount to withdraw publicly */
+  /** Old amount in the note (total) */
   amount: string;
 
   /** Blinding factor for the note */
@@ -131,6 +131,18 @@ export interface UnshieldInput {
 
   /** Merkle proof positions (left=0, right=1) */
   path_index: string[];
+
+  /** Lower 128 bits of recipient address */
+  recipient_lo?: string;
+
+  /** Upper 128 bits of recipient address */
+  recipient_hi?: string;
+
+  /** Old recipient public key of the note */
+  old_recipient_pk?: string;
+
+  /** Note ID for nullifier generation */
+  note_id?: string;
 }
 
 /**

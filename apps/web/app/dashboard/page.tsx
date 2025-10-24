@@ -16,6 +16,7 @@ import {
 import { useState, useEffect } from 'react';
 import styles from './page.module.css';
 import LoadingSkeleton from '../components/LoadingSkeleton';
+import SyncStatusIndicator from '../components/SyncStatusIndicator';
 import DashboardHeader from './DashboardHeader';
 import Navigation from '../components/Navigation';
 
@@ -119,6 +120,9 @@ export default function DashboardPage() {
 
   return (
     <div className={styles.page}>
+      {/* Sync Status Indicator (shows loading/errors) */}
+      <SyncStatusIndicator />
+
       {/* Universal Navigation */}
       <Navigation />
 

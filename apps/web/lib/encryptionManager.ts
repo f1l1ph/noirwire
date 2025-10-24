@@ -86,10 +86,14 @@ async function storeKeyPair(
 
     const request = store.put(data, walletAddress);
 
-    request.onsuccess = () => resolve();
-    request.onerror = () => reject(request.error);
-
-    transaction.oncomplete = () => db.close();
+    request.onsuccess = () => {
+      transaction.oncomplete = () => db.close();
+      resolve();
+    };
+    request.onerror = () => {
+      db.close();
+      reject(request.error);
+    };
   });
 }
 
@@ -99,29 +103,40 @@ async function storeKeyPair(
 async function retrieveKeyPair(
   walletAddress: string,
 ): Promise<EncryptionKeyPair | null> {
-  const db = await openDB();
+  try {
+    const db = await openDB();
 
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction([STORE_NAME], 'readonly');
-    const store = transaction.objectStore(STORE_NAME);
-    const request = store.get(walletAddress);
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction([STORE_NAME], 'readonly');
+      const store = transaction.objectStore(STORE_NAME);
+      const request = store.get(walletAddress);
 
-    request.onsuccess = () => {
-      const data = request.result;
-      if (!data) {
-        resolve(null);
-      } else {
-        resolve({
-          publicKey: decodeBase64(data.publicKey),
-          secretKey: decodeBase64(data.secretKey),
-        });
-      }
-    };
+      request.onsuccess = () => {
+        const data = request.result;
+        transaction.oncomplete = () => db.close();
 
-    request.onerror = () => reject(request.error);
+        if (!data) {
+          console.log('📍 No keypair found in IndexedDB for:', walletAddress);
+          resolve(null);
+        } else {
+          console.log('✅ Keypair retrieved from IndexedDB');
+          resolve({
+            publicKey: decodeBase64(data.publicKey),
+            secretKey: decodeBase64(data.secretKey),
+          });
+        }
+      };
 
-    transaction.oncomplete = () => db.close();
-  });
+      request.onerror = () => {
+        db.close();
+        console.error('❌ Failed to retrieve keypair:', request.error);
+        reject(request.error);
+      };
+    });
+  } catch (error) {
+    console.error('❌ IndexedDB error in retrieveKeyPair:', error);
+    throw error;
+  }
 }
 
 /**
@@ -175,23 +190,39 @@ export async function initializeEncryption(
   walletAddress: string,
   signature?: Uint8Array,
 ): Promise<string> {
-  // Check if keypair already exists
-  let keyPair = await retrieveKeyPair(walletAddress);
+  try {
+    console.log('🔐 Initializing encryption for:', walletAddress);
 
-  if (!keyPair) {
-    // Generate new keypair
-    if (signature) {
-      keyPair = deriveKeyPairFromSignature(signature);
+    // Check if keypair already exists
+    let keyPair = await retrieveKeyPair(walletAddress);
+
+    if (!keyPair) {
+      console.log('📝 Generating new keypair...');
+      // Generate new keypair
+      if (signature) {
+        keyPair = deriveKeyPairFromSignature(signature);
+      } else {
+        keyPair = generateKeyPair();
+      }
+
+      // Store in IndexedDB
+      console.log('💾 Storing keypair in IndexedDB...');
+      await storeKeyPair(walletAddress, keyPair);
+      console.log('✅ Keypair stored successfully');
     } else {
-      keyPair = generateKeyPair();
+      console.log('✅ Using existing keypair');
     }
 
-    // Store in IndexedDB
-    await storeKeyPair(walletAddress, keyPair);
+    // Return public key as base64
+    const publicKeyBase64 = encodeBase64(keyPair.publicKey);
+    console.log('🎉 Encryption initialized successfully');
+    return publicKeyBase64;
+  } catch (error) {
+    console.error('❌ Encryption initialization failed:', error);
+    throw new Error(
+      `Failed to initialize encryption: ${error instanceof Error ? error.message : String(error)}`,
+    );
   }
-
-  // Return public key as base64
-  return encodeBase64(keyPair.publicKey);
 }
 
 /**

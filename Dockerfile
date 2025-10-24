@@ -1,5 +1,5 @@
 # Build stage - compile TypeScript
-FROM node:20-slim AS builder
+FROM node:22-alpine AS builder
 
 WORKDIR /app
 
@@ -11,7 +11,7 @@ COPY packages/ ./packages/
 COPY apps/api/package.json ./apps/api/
 
 # Install all dependencies (including devDeps needed for build)
-RUN yarn install
+RUN yarn install --frozen-lockfile
 
 # Copy source code and circuit artifacts
 COPY . .
@@ -23,15 +23,15 @@ RUN yarn --cwd packages/api build
 RUN yarn --cwd apps/api build
 
 # Copy proofs folder into dist (not compiled by NestJS)
-RUN cp -r /app/apps/api/proofs /app/apps/api/dist/apps/api/
+RUN cp -r /app/apps/api/proofs /app/apps/api/dist/apps/api/ || true
 
 # Production stage - runtime only
-FROM node:20-slim
+FROM node:22-alpine
 
 WORKDIR /app
 
 # Install dumb-init for proper signal handling
-RUN apt-get update && apt-get install -y dumb-init && rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache dumb-init
 
 # Copy workspace configuration
 COPY package.json yarn.lock ./
@@ -39,17 +39,17 @@ COPY packages/ ./packages/
 COPY apps/api/package.json ./apps/api/
 
 # Install production dependencies only
-RUN yarn install --production
+RUN yarn install --production --frozen-lockfile
 
 # Copy compiled application from builder
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
 COPY --from=builder /app/packages/api/dist ./packages/api/dist
 
-# Copy circuit proof artifacts (required for proof generation)
-COPY --from=builder /app/apps/api/proofs ./apps/api/proofs
+# Note: Proofs are already in dist/apps/api/proofs from the builder stage
+# The dist folder includes everything needed for the app to run
 
 # Create non-root user for security
-RUN useradd -m -u 1001 appuser && chown -R appuser:appuser /app
+RUN addgroup -g 1001 -S appuser && adduser -u 1001 -S appuser -G appuser
 USER appuser
 
 EXPOSE 3000

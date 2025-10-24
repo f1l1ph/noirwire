@@ -18,6 +18,7 @@ import {
 } from '../../lib/privacyUtils';
 import { generateProof, decodeProof } from '../../lib/proofService';
 import { Note, ProcessingStep, UnshieldInput } from '../../lib/types';
+import { FRONTEND_URL, API_BASE_URL } from '../../lib/constants';
 import { useWalletData } from '../context/WalletDataContext';
 import styles from '../components/TransactionLayout.module.css';
 import Navigation from '../components/Navigation';
@@ -178,7 +179,7 @@ export default function UnshieldPage() {
             `2. The commitment wasn't added to indexer after shield\n` +
             `3. The indexer was restarted and tree is empty\n\n` +
             `MANUAL FIX:\n` +
-            `Go to: http://localhost:3001/debug-indexer\n` +
+            `Go to: ${FRONTEND_URL}/debug-indexer\n` +
             `1. Click "Load Status" - check shield tree count\n` +
             `2. Click "Load Notes" - find your commitment\n` +
             `3. Paste commitment in input field\n` +
@@ -194,7 +195,7 @@ export default function UnshieldPage() {
             `1. The commitment was not added to the indexer\n` +
             `2. The indexer tree is empty\n` +
             `3. You need to manually add the commitment\n\n` +
-            `Try: curl -X POST http://localhost:3000/indexer/shield/commit \\\n` +
+            `Try: curl -X POST ${API_BASE_URL}/indexer/shield/commit \\\n` +
             `  -H "Content-Type: application/json" \\\n` +
             `  -d '{"commitment":"${selectedNote.commitment}"}'`
           );
@@ -216,7 +217,7 @@ export default function UnshieldPage() {
             '3. You need to manually add the commitment to the indexer\n\n' +
             `Commitment: ${selectedNote.commitment.slice(0, 16)}...\n\n` +
             `Try running:\n` +
-            `curl -X POST http://localhost:3000/indexer/shield/commit \\\n` +
+            `curl -X POST ${API_BASE_URL}/indexer/shield/commit \\\n` +
             `  -H "Content-Type: application/json" \\\n` +
             `  -d '{"commitment":"${selectedNote.commitment}"}'`
           );
@@ -275,7 +276,7 @@ export default function UnshieldPage() {
           `Merkle root pending on-chain after 60 seconds. This usually means:\n\n` +
           `1. The indexer is busy publishing roots (wait 1-2 minutes and try again)\n` +
           `2. Network is congested (Solana network is slow)\n\n` +
-          `Your note is safely stored. You can try unshielding again later. Check the debug page at http://localhost:3001/debug-indexer for more details.`
+          `Your note is safely stored. You can try unshielding again later. Check the debug page at ${FRONTEND_URL}/debug-indexer for more details.`
         );
       };
 
@@ -299,16 +300,23 @@ export default function UnshieldPage() {
       const { computeNullifier } = await import('../../lib/privacyUtils');
       const nullifier = await computeNullifier(secretKey, noteId);
       
-      // Build proof input - only include fields the circuit expects
+      // Build proof input - send only what the circuit expects
+      // NOTE: root and nullifier are COMPUTED by the circuit, not inputs!
       const proofInput: UnshieldInput = {
-        root: rootHex,
-        nullifier: nullifier.toString(),
+        // Web app format that we'll transform on the backend
+        root: rootHex, // Will be removed by backend
+        nullifier: nullifier.toString(), // Will be removed by backend
         secret: secretKey.toString(),
-        amount: unshieldAmountLamports.toString(),
+        amount: oldAmountLamports.toString(), // OLD amount in the note, not unshield amount
         blinding: selectedNote.blinding,
         path_elements: path,
         path_index: pathPositions,
         fee: feeLamports.toString(),
+        // Additional fields needed by circuit
+        recipient_lo: recipientLo.toString(),
+        recipient_hi: recipientHi.toString(),
+        old_recipient_pk: '0', // TODO: This should come from the note metadata
+        note_id: noteId.toString(),
       };
       // Log the payload for debugging
       console.log('[Unshield] Proof input payload:', JSON.stringify({ circuit: 'unshield', input: proofInput }, null, 2));

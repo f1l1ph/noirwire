@@ -1,6 +1,6 @@
 /**
- * HTTP Client with Axios and Zod validation
- * Professional async API communication without manual timeouts
+ * HTTP Client with Axios and error code handling
+ * Provides professional async API communication with structured error responses
  */
 
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosError } from 'axios';
@@ -8,16 +8,54 @@ import axiosRetry from 'axios-retry';
 import { API_CONFIG } from './constants';
 
 /**
- * Custom API Error with status code and context
+ * API Error Response structure
+ */
+export interface ApiErrorResponse {
+  statusCode: number;
+  errorCode?: string;
+  message: string;
+  userMessage?: string;
+  timestamp?: string;
+  requestId?: string;
+  details?: Record<string, string | number | boolean>;
+}
+
+/**
+ * Custom API Error with error code and context
  */
 export class ApiError extends Error {
   constructor(
     message: string,
     public statusCode?: number,
+    public errorCode?: string,
+    public userMessage?: string,
+    public details?: Record<string, string | number | boolean>,
     public originalError?: unknown,
   ) {
     super(message);
     this.name = 'ApiError';
+    Object.setPrototypeOf(this, ApiError.prototype);
+  }
+
+  /**
+   * Get user-friendly error message
+   */
+  getUserMessage(): string {
+    return this.userMessage || this.message;
+  }
+
+  /**
+   * Check if error is a specific error code
+   */
+  isErrorCode(code: string): boolean {
+    return this.errorCode === code;
+  }
+
+  /**
+   * Get error details
+   */
+  getDetails(): Record<string, string | number | boolean> | undefined {
+    return this.details;
   }
 }
 
@@ -39,6 +77,7 @@ function createHttpClient(): AxiosInstance {
     retryDelay: axiosRetry.exponentialDelay,
     retryCondition: (error: AxiosError) => {
       // Retry on network errors or 5xx server errors
+      // But NOT on 4xx client errors (validation, not found, etc.)
       return (
         axiosRetry.isNetworkOrIdempotentRequestError(error) ||
         (error.response?.status ?? 0) >= 500
@@ -67,10 +106,14 @@ function createHttpClient(): AxiosInstance {
     (error: AxiosError) => {
       if (error.response) {
         // Server responded with error status
-        const errorData = error.response.data as { error?: string } | undefined;
+        const errorData = error.response.data as ApiErrorResponse | undefined;
+
         throw new ApiError(
-          errorData?.error || error.message,
+          errorData?.message || error.message,
           error.response.status,
+          errorData?.errorCode,
+          errorData?.userMessage,
+          errorData?.details,
           error,
         );
       } else if (error.request) {
@@ -78,11 +121,21 @@ function createHttpClient(): AxiosInstance {
         throw new ApiError(
           'Network error - no response received',
           undefined,
+          'NETWORK_ERROR',
+          'Unable to reach the server. Please check your connection.',
+          undefined,
           error,
         );
       } else {
         // Error in request setup
-        throw new ApiError(error.message || 'Request failed', undefined, error);
+        throw new ApiError(
+          error.message || 'Request failed',
+          undefined,
+          'REQUEST_ERROR',
+          'Failed to prepare request.',
+          undefined,
+          error,
+        );
       }
     },
   );

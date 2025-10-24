@@ -10,14 +10,30 @@ NestJS 11 • Node.js 18+ • snarkjs 0.7.5 • Supabase • Solana
 
 ## Local Development
 
+### Option 1: Local (Fast Development)
+
 ```bash
-npm install          # Install dependencies
-npm run dev         # Start dev server (watch mode)
+yarn install          # Install dependencies
+yarn dev              # Start dev server (watch mode, hot-reload)
 ```
 
 API runs on http://localhost:3000
 
-### Build Circuits (Required)
+### Option 2: Docker (Production-like)
+
+```bash
+# From project root
+docker-compose up -d api
+
+# View logs
+docker logs -f noirwire-api
+
+# Rebuild after code changes
+docker-compose build api
+docker-compose restart api
+```
+
+### Build Circuits (Required for Development)
 
 ```bash
 cd external/noirwire-contracts/zk-circuits
@@ -26,93 +42,222 @@ make all
 
 ---
 
-## 🚀 Production Deployment
+## API Endpoints
 
-### Quick Start (Railway)
+````
+
+---
+
+## � Docker Development & Production
+
+See **[DOCKER.md](./DOCKER.md)** for comprehensive guide covering:
+
+- Local development with Docker
+- Production deployment to 6+ platforms
+- Environment configuration
+- CI/CD pipeline setup
+- Monitoring and logging
+- Troubleshooting
+
+### Quick Docker Commands
 
 ```bash
-cd apps/api
+# From project root
 
-# Option 1: Makefile
-make quick-deploy
+# Build
+docker-compose build api
 
-# Option 2: npm
-npm run railway:deploy
+# Start
+docker-compose up -d api
+
+# Logs
+docker logs -f noirwire-api
+
+# Stop
+docker-compose down
+````
+
+---
+
+## 🚀 Production Deployment
+
+### Detailed Instructions
+
+👉 **See [DOCKER.md](./DOCKER.md) for complete production guide**
+
+Includes step-by-step instructions for:
+
+- AWS ECS
+- Google Cloud Run
+- Azure Container Instances
+- Railway
+- Render
+- And more...
+
+### Quick Summary
+
+```bash
+# Build Docker image
+docker build -f ../../Dockerfile -t noirwire-api:v1.0.0 .
+
+# Push to your registry
+docker tag noirwire-api:v1.0.0 YOUR-REGISTRY/noirwire-api:v1.0.0
+docker push YOUR-REGISTRY/noirwire-api:v1.0.0
+
+# Deploy using your platform's tools
+# (See DOCKER.md for platform-specific instructions)
 ```
 
 ### Environment Variables
 
 ```bash
-NODE_ENV=production
-SOLANA_RPC_URL=https://api.devnet.solana.com
-NOIRWIRE_PROGRAM_ID=Hza5rjYmJnoYsjsgsuxLkyxLoWVo6RCUZxCB3x17v8qz
-SOLANA_COMMITMENT=confirmed
+# Supabase (production)
 SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_SERVICE_KEY=your-service-key
-CORS_ORIGINS=https://your-frontend.vercel.app
-```
+SUPABASE_SERVICE_KEY=your-service-role-key
 
-### Deploy to Railway
-
-**Dashboard (Easiest):**
-1. Go to https://railway.app
-2. Create project from GitHub repo
-3. Add environment variables
-4. Deploy automatically
-
-**CLI:**
-```bash
-cd apps/api
-
-# Makefile commands
-make railway-login
-make railway-link
-make railway-vars      # Sets basic vars
-make railway-deploy
-
-# Or npm scripts
-npm run railway:deploy
-npm run railway:logs
-npm run railway:status
-```
-
-**Railway auto-detects the monorepo** and builds from root using `npm workspaces`.
-
-### Why Railway?
-
-✅ Long-running server support (proof generation takes 2-4s)  
-✅ Auto PORT assignment  
-✅ Built-in monitoring  
-✅ ~$5-10/month  
-
-⚠️ **Don't use Vercel** - 10s timeout, designed for serverless
-
-### Monorepo Notes
-
-This API is part of a monorepo. Railway:
-- Builds from root (resolves `@repo/api` workspace)
-- Uses `nixpacks.toml` and `railway.toml` in root
-- Starts with `node apps/api/dist/main.js`
-
-Commands run from `apps/api`, but Railway finds root config automatically.
-
-### Troubleshooting
-
-**Build fails:** Check Railway logs, ensure `tsconfig.json` not ignored  
-**Crashes:** Verify all env vars set, check Supabase credentials  
-**CORS errors:** Add frontend URL to `CORS_ORIGINS`  
-**Proof timeout:** Increase Railway memory (up to 8GB available)
-
-### Mainnet
-
-```bash
+# Solana (production or devnet)
 SOLANA_RPC_URL=https://api.mainnet-beta.solana.com
-NOIRWIRE_PROGRAM_ID=<your-mainnet-program-id>
+NOIRWIRE_PROGRAM_ID=<your-program-id>
+SOLANA_COMMITMENT=confirmed
+
+# API
+NODE_ENV=production
+LOG_LEVEL=info
+
+# CORS (for frontend)
+CORS_ORIGINS=https://your-frontend.vercel.app,https://your-domain.com
 ```
 
-Consider paid RPC: Helius, QuickNode, or Alchemy
+### Platforms Comparison
+
+| Platform         | Startup    | Scaling    | Cost | Maintenance |
+| ---------------- | ---------- | ---------- | ---- | ----------- |
+| Railway          | ⭐⭐⭐⭐⭐ | ⭐⭐⭐     | $$   | ⭐⭐        |
+| Google Cloud Run | ⭐⭐⭐⭐   | ⭐⭐⭐⭐⭐ | $    | ⭐⭐⭐      |
+| AWS ECS          | ⭐⭐       | ⭐⭐⭐⭐⭐ | $$   | ⭐⭐⭐⭐    |
+| Azure            | ⭐⭐       | ⭐⭐⭐     | $$   | ⭐⭐⭐⭐    |
+| Render           | ⭐⭐⭐⭐   | ⭐⭐⭐     | $$   | ⭐⭐        |
+| Heroku           | ⭐⭐⭐⭐⭐ | ⭐⭐       | $$$  | ⭐          |
+
+**Recommendation:** Start with Railway (fastest), scale to GCP Cloud Run or AWS ECS
 
 ---
+
+## API Endpoints
+
+### Indexer
+
+- `GET /indexer/status` - Status of all merkle trees
+- `GET /indexer/:circuit/commitments` - Get commitments for circuit
+- `GET /indexer/:circuit/root` - Get merkle root for circuit
+- `POST /indexer/:circuit/proof` - Generate proof
+- `POST /indexer/:circuit/commit` - Add commitment to tree
+- `POST /indexer/:circuit/sync` - Sync with blockchain
+
+### Wallet
+
+- `POST /wallet/add-note` - Store encrypted note
+- `POST /wallet/spend-note` - Mark note as spent
+- `POST /wallet/select-notes` - Select notes for transaction
+
+### More Details
+
+See source code in `src/` for full API documentation
+
+---
+
+## Error Handling
+
+The API uses semantic error codes instead of generic HTTP status codes:
+
+- `COMMITMENT_NOT_FOUND` - Commitment not in merkle tree
+- `EMPTY_TREE` - No commitments in tree yet
+- `INVALID_COMMITMENT_FORMAT` - Malformed commitment
+- `PROOF_GENERATION_FAILED` - Proof generation error
+- `VERIFICATION_KEY_MISSING` - WASM artifact missing
+- `WASM_NOT_FOUND` - Proof circuit not found
+
+See `src/common/error-codes.ts` for complete list.
+
+---
+
+## Testing
+
+```bash
+# Run tests
+yarn test
+
+# Run with coverage
+yarn test:cov
+
+# E2E tests
+yarn test:e2e
+
+# E2E against production
+yarn test:e2e:prod
+```
+
+---
+
+## Development Workflow
+
+### Making Changes
+
+1. **Local development (recommended for speed)**:
+
+   ```bash
+   yarn dev
+   ```
+
+2. **Or with Docker**:
+
+   ```bash
+   docker-compose build api
+   docker-compose up -d api
+   ```
+
+3. **Test your changes**
+4. **Commit and push**
+
+## Troubleshooting
+
+### "Cannot find module '@repo/api'"
+
+```bash
+# Rebuild workspace
+yarn build
+
+# Or in Docker
+docker-compose build api --no-cache
+```
+
+### "WASM artifact missing"
+
+```bash
+# Check dist folder
+ls -la dist/apps/api/proofs/
+
+# Rebuild
+docker-compose build api --no-cache
+```
+
+### "Supabase connection failed"
+
+```bash
+# Check environment variables
+echo $SUPABASE_URL
+echo $SUPABASE_SERVICE_KEY
+
+# Verify they're correct in .env.local
+```
+
+### "Port 3000 already in use"
+
+```bash
+lsof -i :3000
+# Kill the process
+kill -9 <PID>
+```
 
 ## License
 

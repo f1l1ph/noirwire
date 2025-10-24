@@ -1,15 +1,11 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Param,
-  Logger,
-  BadRequestException,
-  NotFoundException,
-} from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Logger } from '@nestjs/common';
 import { IndexerService, MerkleProof } from './indexer.service';
 import { BlockchainSyncService } from './blockchain-sync.service';
+import {
+  InvalidCircuitException,
+  ValidationMissingFieldException,
+  AppException,
+} from '../common/exceptions';
 
 /**
  * Indexer Controller - HTTP endpoints for Merkle proof queries
@@ -48,9 +44,7 @@ export class IndexerController {
 
     // Validate circuit
     if (!['shield', 'transfer', 'unshield'].includes(circuit)) {
-      throw new BadRequestException(
-        `Invalid circuit: ${circuit}. Must be shield, transfer, or unshield`,
-      );
+      throw new InvalidCircuitException(circuit);
     }
 
     return this.indexerService.getCommitments(
@@ -78,9 +72,7 @@ export class IndexerController {
 
     // Validate circuit
     if (!['shield', 'transfer', 'unshield'].includes(circuit)) {
-      throw new BadRequestException(
-        `Invalid circuit: ${circuit}. Must be shield, transfer, or unshield`,
-      );
+      throw new InvalidCircuitException(circuit);
     }
 
     try {
@@ -89,10 +81,13 @@ export class IndexerController {
       );
       return { root };
     } catch (error) {
+      if (error instanceof AppException) {
+        throw error;
+      }
       this.logger.error(
         `[Indexer] Error getting root for ${circuit}: ${error}`,
       );
-      throw new NotFoundException(`Could not get root for circuit: ${circuit}`);
+      throw error;
     }
   }
 
@@ -108,9 +103,7 @@ export class IndexerController {
   ): Promise<MerkleProof> {
     // Validate circuit
     if (!['shield', 'transfer', 'unshield'].includes(circuit)) {
-      throw new BadRequestException(
-        `Invalid circuit: ${circuit}. Must be shield, transfer, or unshield`,
-      );
+      throw new InvalidCircuitException(circuit);
     }
 
     // Validate commitment BEFORE using it in logs
@@ -118,9 +111,7 @@ export class IndexerController {
       this.logger.warn(
         `[Indexer] POST /${circuit}/proof - invalid or missing commitment`,
       );
-      throw new BadRequestException(
-        'commitment is required and must be string',
-      );
+      throw new ValidationMissingFieldException('commitment');
     }
 
     this.logger.log(
@@ -139,31 +130,17 @@ export class IndexerController {
 
       return proof;
     } catch (error) {
+      // Re-throw custom exceptions as-is
+      if (error instanceof AppException) {
+        throw error;
+      }
+
       const errorMessage =
         error instanceof Error ? error.message : String(error);
       this.logger.error(`[Indexer] Error generating proof: ${errorMessage}`);
 
-      const statusSnapshot = this.indexerService.getStatus();
-      const commitmentsSnapshot = this.indexerService.getCommitments(
-        circuit as 'shield' | 'transfer' | 'unshield',
-      );
-
-      const diagnostics = {
-        message: errorMessage,
-        circuit,
-        commitment: body.commitment,
-        trees: statusSnapshot.trees,
-        sampleCommitments: commitmentsSnapshot.commitments.slice(0, 10),
-      };
-
-      if (error instanceof Error && error.message.includes('not found')) {
-        throw new NotFoundException(diagnostics);
-      }
-
-      throw new BadRequestException({
-        ...diagnostics,
-        message: `Could not generate proof: ${errorMessage}`,
-      });
+      // For unknown errors, just re-throw
+      throw error;
     }
   }
 
@@ -179,9 +156,7 @@ export class IndexerController {
   ): Promise<{ success: boolean; root: string; index: number }> {
     // Validate circuit
     if (!['shield', 'transfer', 'unshield'].includes(circuit)) {
-      throw new BadRequestException(
-        `Invalid circuit: ${circuit}. Must be shield, transfer, or unshield`,
-      );
+      throw new InvalidCircuitException(circuit);
     }
 
     // Validate commitment BEFORE using it in logs
@@ -189,9 +164,7 @@ export class IndexerController {
       this.logger.warn(
         `[Indexer] POST /${circuit}/commit - invalid or missing commitment`,
       );
-      throw new BadRequestException(
-        'commitment is required and must be string',
-      );
+      throw new ValidationMissingFieldException('commitment');
     }
 
     this.logger.log(
@@ -218,12 +191,14 @@ export class IndexerController {
         index: result.index,
       };
     } catch (error) {
+      if (error instanceof AppException) {
+        throw error;
+      }
+
       this.logger.error(
         `[Indexer] Error adding commitment: ${error instanceof Error ? error.message : String(error)}`,
       );
-      throw new BadRequestException(
-        `Could not add commitment: ${error instanceof Error ? error.message : String(error)}`,
-      );
+      throw error;
     }
   }
 
@@ -243,9 +218,7 @@ export class IndexerController {
   ): Promise<{ success: boolean; synced: boolean }> {
     // Validate circuit
     if (!['shield', 'transfer', 'unshield'].includes(circuit)) {
-      throw new BadRequestException(
-        `Invalid circuit: ${circuit}. Must be shield, transfer, or unshield`,
-      );
+      throw new InvalidCircuitException(circuit);
     }
 
     // Validate commitment BEFORE using it in logs
@@ -253,9 +226,7 @@ export class IndexerController {
       this.logger.warn(
         `[Indexer] POST /${circuit}/sync - invalid or missing commitment`,
       );
-      throw new BadRequestException(
-        'commitment is required and must be string',
-      );
+      throw new ValidationMissingFieldException('commitment');
     }
 
     this.logger.log(
@@ -271,12 +242,14 @@ export class IndexerController {
 
       return { success: true, synced: true };
     } catch (error) {
+      if (error instanceof AppException) {
+        throw error;
+      }
+
       this.logger.error(
         `[Indexer] Error syncing commitment: ${error instanceof Error ? error.message : String(error)}`,
       );
-      throw new BadRequestException(
-        `Could not sync commitment: ${error instanceof Error ? error.message : String(error)}`,
-      );
+      throw error;
     }
   }
 }

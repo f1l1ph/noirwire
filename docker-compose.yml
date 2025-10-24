@@ -1,0 +1,51 @@
+version: "3.8"
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: noirwire-api
+    ports:
+      - "3000:3000"
+
+    # Load environment from file FIRST
+    env_file:
+      - apps/api/.env.local
+
+    # Then override/supplement with explicit env vars if needed
+    environment:
+      NODE_ENV: production
+      API_URL: http://localhost:3000
+
+    # Restart policy
+    restart: unless-stopped
+
+    # Health check
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('http').get('http://localhost:3000/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+    # Logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    # Network
+    networks:
+      - noirwire
+
+networks:
+  noirwire:
+    driver: bridge

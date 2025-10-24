@@ -27,6 +27,10 @@ export const API_CONFIG = {
 export const API_BASE_URL = API_CONFIG.BASE_URL;
 export const PROOF_ENDPOINT = `${API_CONFIG.BASE_URL}/proof/generate`;
 
+// Frontend Configuration
+export const FRONTEND_URL =
+  process.env.NEXT_PUBLIC_FRONTEND_URL || 'http://localhost:3001';
+
 // Sync Configuration
 export const SYNC_CONFIG = {
   INTERVAL_MS: 60000, // 60 seconds

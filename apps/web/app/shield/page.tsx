@@ -7,6 +7,7 @@ import { computeCommitment, fieldToBuffer, bufferToField } from '../../lib/crypt
 import { getNextNoteIndex, deriveBlindingFactor } from '../../lib/notes';
 import { generateProof, decodeProof } from '../../lib/proofService';
 import { ProcessingStep, ShieldInput } from '../../lib/types';
+import { API_BASE_URL, FRONTEND_URL } from '../../lib/constants';
 import { useWalletData } from '../context/WalletDataContext';
 import styles from '../components/TransactionLayout.module.css';
 import Navigation from '../components/Navigation';
@@ -152,7 +153,7 @@ export default function ShieldPage() {
         
         const { addCommitmentToIndexer } = await import('../../lib/indexerClient');
         console.log(`[Shield] 📤 Calling addCommitmentToIndexer('shield', '${commitmentHex.slice(0, 16)}...')`);
-        console.log(`[Shield] API URL: http://localhost:3000/indexer/shield/commit`);
+        console.log(`[Shield] API URL: ${API_BASE_URL}/indexer/shield/commit`);
         
         const result = await addCommitmentToIndexer('shield', commitmentHex);
         
@@ -177,7 +178,7 @@ export default function ShieldPage() {
         console.error('⚠️  You will NOT be able to unshield this note until the commitment is added!');
         console.error('');
         console.error('🔧 MANUAL FIX:');
-        console.error(`   1. Go to: http://localhost:3001/debug-indexer`);
+        console.error(`   1. Go to: ${FRONTEND_URL}/debug-indexer`);
         console.error(`   2. Paste this commitment: ${commitmentHex}`);
         console.error(`   3. Click "Add to Indexer" button`);
         console.error('');
@@ -186,15 +187,44 @@ export default function ShieldPage() {
         // Don't fail the whole operation if indexer fails
       }
       
-      await addNote({
-        commitment: commitmentHex,
-        blinding: blinding.toString(),
-        amount,
-        recipient: publicKey.toBase58(),
-        timestamp: Date.now(),
-        txSignature: signature,
-        spent: false,
-      });
+      try {
+        await addNote({
+          commitment: commitmentHex,
+          blinding: blinding.toString(),
+          amount,
+          recipient: publicKey.toBase58(),
+          timestamp: Date.now(),
+          txSignature: signature,
+          spent: false,
+        });
+      } catch (syncError) {
+        // Supabase sync failed - this is CRITICAL
+        const syncErrorMsg = syncError instanceof Error 
+          ? syncError.message 
+          : String(syncError);
+        
+        setStep('error');
+        setStatus(`❌ CRITICAL ERROR: Note was created but Supabase sync failed!
+
+${syncErrorMsg}
+
+⚠️  Your note is saved locally but NOT backed up to Supabase.
+
+🔧 FIX REQUIRED:
+1. Check that SUPABASE_URL is set on your API server
+2. Check that SUPABASE_SERVICE_KEY is set on your API server
+3. Verify the user_notes table exists in Supabase
+4. See SUPABASE_VERIFICATION.md for detailed help
+
+📝 Your note details (manually save):
+• Commitment: ${commitmentHex}
+• Blinding: ${blinding.toString()}
+• Amount: ${amount} SOL
+• Recipient: ${publicKey.toBase58()}`);
+        
+        setErrorDetails(`Sync Error: ${syncErrorMsg}`);
+        return;
+      }
       
       setStep('success');
       setStatus(`✅ Shield successful! 
@@ -204,6 +234,7 @@ export default function ShieldPage() {
 • Commitment: ${commitmentHex.slice(0, 16)}...
 • Added to Merkle Tree ✓
 • Transaction: ${signature.slice(0, 16)}...
+• ✅ Backed up to Supabase
 
 Your private balance is now updated. You can unshield anytime, but Merkle roots must be published on-chain first (happens automatically).`);
       setErrorDetails('');

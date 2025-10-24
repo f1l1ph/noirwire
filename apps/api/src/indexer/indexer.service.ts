@@ -1,5 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { buildPoseidon } from 'circomlibjs';
+import {
+  IndexerNotInitializedException,
+  InvalidCommitmentFormatException,
+  HashFailedException,
+  EmptyTreeException,
+  CommitmentNotFoundException,
+} from '../common/exceptions';
 
 /**
  * Merkle Proof - path and positions for inclusion proof
@@ -77,10 +84,10 @@ export class IndexerService {
     commitment: string,
   ): Promise<{ index: number; root: string }> {
     if (!this.initialized) {
-      throw new Error('Indexer not initialized');
+      throw new IndexerNotInitializedException('Poseidon hash not initialized');
     }
 
-     const treeKey = this.resolveTreeKey(circuit);
+    const treeKey = this.resolveTreeKey(circuit);
 
     // Normalize commitment to decimal string for internal storage
     // This is needed because Poseidon.F.toString() returns decimal strings
@@ -106,7 +113,10 @@ export class IndexerService {
         normalizedCommitment = commitment;
       }
     } catch (error) {
-      throw new Error(`Cannot convert ${commitment} to a BigInt: ${error}`);
+      throw new InvalidCommitmentFormatException(
+        commitment,
+        `Cannot convert to BigInt: ${error}`,
+      );
     }
 
     // Add commitment and get its index
@@ -172,7 +182,7 @@ export class IndexerService {
     this.logger.debug(`Commitment: ${commitment}`);
 
     if (!this.initialized) {
-      throw new Error('Indexer not initialized');
+      throw new IndexerNotInitializedException('Poseidon hash not initialized');
     }
 
     const treeKey = this.resolveTreeKey(circuit);
@@ -183,12 +193,7 @@ export class IndexerService {
       this.logger.error(`❌ No commitments found for circuit: ${treeKey}`);
       this.logger.error('Tree is empty! Did you forget to shield first?');
       this.logger.error('Available circuits:', Object.keys(this.trees));
-      const treeSizes = Object.entries(this.trees).reduce(
-        (acc, [key, val]) => ({ ...acc, [key]: val.length }),
-        {},
-      );
-      this.logger.error('Tree sizes:', JSON.stringify(treeSizes));
-      throw new Error(`No commitments found for circuit: ${treeKey}`);
+      throw new EmptyTreeException(circuit);
     }
 
     // Normalize commitment to decimal for searching (same as storage format)
@@ -214,7 +219,7 @@ export class IndexerService {
     } catch (err) {
       this.logger.error(`❌ Invalid commitment format: ${commitment}`);
       this.logger.error(`Error: ${err}`);
-      throw new Error(`Invalid commitment format: ${commitment}`);
+      throw new InvalidCommitmentFormatException(commitment, String(err));
     }
 
     // Find commitment index (compare as decimal strings)
@@ -234,10 +239,10 @@ export class IndexerService {
           `  [${i}]: dec=${c.slice(0, 16)}... hex=${hexValue.slice(0, 16)}...`,
         );
       });
-      throw new Error(
-        `Commitment not found in ${circuit} tree. ` +
-          `Searched for: ${normalizedCommitment.slice(0, 16)}... ` +
-          `Tree has ${commitments.length} commitments.`,
+      throw new CommitmentNotFoundException(
+        commitment,
+        circuit,
+        commitments.length,
       );
     }
 
@@ -298,7 +303,9 @@ export class IndexerService {
       for (let i = 0; i < currentLevel.length; i += 2) {
         const left = currentLevel[i];
         const right =
-          i + 1 < currentLevel.length ? currentLevel[i + 1] : this.zeroValues[level];
+          i + 1 < currentLevel.length
+            ? currentLevel[i + 1]
+            : this.zeroValues[level];
 
         // Hash this pair
         const hash = this.hashPair(left, right);
@@ -338,7 +345,7 @@ export class IndexerService {
    */
   private hashPair(left: string, right: string): string {
     if (!this.poseidon) {
-      throw new Error('Poseidon not initialized');
+      throw new IndexerNotInitializedException('Poseidon not initialized');
     }
 
     try {
@@ -355,7 +362,7 @@ export class IndexerService {
       this.logger.error(
         `[Indexer] Poseidon hash failed: ${error}, left=${left.slice(0, 8)}..., right=${right.slice(0, 8)}...`,
       );
-      throw error;
+      throw new HashFailedException(String(error));
     }
   }
 
@@ -404,13 +411,13 @@ export class IndexerService {
     circuit: 'shield' | 'transfer' | 'unshield',
   ): Promise<string> {
     if (!this.initialized) {
-      throw new Error('Indexer not initialized');
+      throw new IndexerNotInitializedException('Poseidon hash not initialized');
     }
 
     const treeKey = this.resolveTreeKey(circuit);
     const commitments = this.trees[treeKey];
     if (!commitments || commitments.length === 0) {
-      throw new Error(`No commitments found for circuit: ${treeKey}`);
+      throw new EmptyTreeException(circuit);
     }
 
     const rootDecimal = this.computeRootDecimal(commitments);
