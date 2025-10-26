@@ -2,7 +2,6 @@
 // Scans on-chain events to rebuild your notes from your viewing key
 
 import { Connection, PublicKey } from '@solana/web3.js';
-import { Note, saveNote, getNotes } from './notes';
 import { computeCommitment } from './crypto';
 
 const PROGRAM_ID = new PublicKey(
@@ -170,9 +169,8 @@ export async function scanAndRestoreNotes(
 
   progressCallback?.('Checking commitments...', 30);
 
-  // Get existing notes to avoid duplicates
-  const existingNotes = getNotes(walletAddress);
-  const existingCommitments = new Set(existingNotes.map((n) => n.commitment));
+  // TODO: Get existing commitments from API instead of local storage
+  const existingCommitments = new Set<string>();
 
   let restored = 0;
   const commonAmounts = [
@@ -204,7 +202,7 @@ export async function scanAndRestoreNotes(
 
       // Try different indices (in case you have multiple notes)
       for (let index = 0; index < 10; index++) {
-        const { blinding, matches } = await tryDecryptCommitment(
+        const { matches } = await tryDecryptCommitment(
           scanned.commitment,
           viewingKey,
           walletAddress,
@@ -213,20 +211,10 @@ export async function scanAndRestoreNotes(
         );
 
         if (matches) {
-          // Found a match! Save this note
-          const note: Note = {
-            commitment: scanned.commitment,
-            blinding: blinding.toString(),
-            amount: solAmount.toString(),
-            recipient: walletAddress,
-            timestamp: scanned.timestamp * 1000,
-            txSignature: scanned.signature,
-            spent: false,
-          };
-
-          saveNote(walletAddress, note);
+          // Found a match!
           restored++;
           console.log(`✅ Restored note: ${solAmount} SOL`);
+          // TODO: Save note to API instead of local storage
 
           // Move to next commitment once found
           break;

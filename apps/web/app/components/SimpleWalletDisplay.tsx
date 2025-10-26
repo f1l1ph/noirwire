@@ -22,7 +22,6 @@ function SimpleWalletDisplayClient(): React.ReactElement {
     privateBalance, 
     noteCount, 
     isLoading,
-    isLoadingFromSupabase,
     clearAllNotes 
   } = useWalletData();
   const [copiedZkAddress, setCopiedZkAddress] = useState(false);
@@ -100,7 +99,7 @@ function SimpleWalletDisplayClient(): React.ReactElement {
             <span className={styles.cardTitle}>Private Balance</span>
           </div>
           <div className={styles.cardAmount}>
-            {isLoadingFromSupabase ? (
+            {isLoading ? (
               <span className={styles.loading}>Loading...</span>
             ) : (
               <>{privateBalance > 0 ? privateBalance.toFixed(4) : '0.0000'}</>

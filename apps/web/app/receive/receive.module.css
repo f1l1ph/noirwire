@@ -1,0 +1,236 @@
+/* Receive Page Styles */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--background);
+  color: var(--text-primary);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+  padding: var(--space-8);
+}
+
+.backButton {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  background: rgba(99, 102, 241, 0.08);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: var(--radius-md);
+  color: var(--primary);
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all var(--transition-base);
+}
+
+.backButton:hover {
+  background: rgba(99, 102, 241, 0.12);
+  border-color: rgba(99, 102, 241, 0.3);
+  transform: translateX(-2px);
+}
+
+.main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-8);
+}
+
+.content {
+  text-align: center;
+  max-width: 500px;
+  width: 100%;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: var(--space-3);
+}
+
+.subtitle {
+  color: var(--text-secondary);
+  margin-bottom: var(--space-8);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.card {
+  background: var(--surface);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-8);
+  transition: all var(--transition-base);
+}
+
+.card:hover {
+  border-color: rgba(99, 102, 241, 0.3);
+  box-shadow: 0 12px 24px rgba(99, 102, 241, 0.08);
+}
+
+.qrContainer {
+  margin-bottom: var(--space-8);
+  display: flex;
+  justify-content: center;
+}
+
+.qrCode {
+  padding: var(--space-4);
+  background: white;
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.addressContainer {
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  margin-bottom: var(--space-6);
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  color: var(--primary);
+  word-break: break-all;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.buttonGroup {
+  display: flex;
+  gap: var(--space-3);
+  justify-content: center;
+}
+
+.copyButton {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-6);
+  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  border: none;
+  border-radius: var(--radius-md);
+  color: white;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.copyButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(99, 102, 241, 0.3);
+}
+
+.copyButton:active {
+  transform: translateY(0);
+}
+
+.copyButton.copied {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.downloadButton {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-6);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: 0.9375rem;
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.downloadButton:hover {
+  background: rgba(99, 102, 241, 0.08);
+  border-color: rgba(99, 102, 241, 0.3);
+  transform: translateY(-2px);
+}
+
+.note {
+  margin-top: var(--space-6);
+  padding: var(--space-4);
+  background: rgba(249, 115, 22, 0.08);
+  border: 1px solid rgba(249, 115, 22, 0.2);
+  border-radius: var(--radius-md);
+  color: var(--warning);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+.disconnected {
+  padding: var(--space-8);
+}
+
+.disconnectedText {
+  color: var(--text-secondary);
+  margin-bottom: var(--space-6);
+}
+
+.connectButton {
+  padding: var(--space-3) var(--space-6);
+  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  border: none;
+  border-radius: var(--radius-md);
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.connectButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(99, 102, 241, 0.3);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .header {
+    padding: var(--space-6) var(--space-4);
+  }
+
+  .main {
+    padding: var(--space-6) var(--space-4);
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .card {
+    padding: var(--space-6);
+  }
+
+  .qrContainer {
+    margin-bottom: var(--space-6);
+  }
+
+  .buttonGroup {
+    flex-direction: column;
+  }
+
+  .copyButton,
+  .downloadButton {
+    width: 100%;
+    justify-content: center;
+  }
+}

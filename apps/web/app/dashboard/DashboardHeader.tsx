@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { 
   ClipboardDocumentIcon, 
@@ -10,6 +10,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { useWalletData } from '../context/WalletDataContext';
+import { bufferToField } from '../../lib/crypto';
 import styles from './DashboardHeader.module.css';
 
 export default function DashboardHeader() {
@@ -31,10 +32,14 @@ export default function DashboardHeader() {
   const publicAddress = publicKey?.toBase58() || '';
   const publicShort = publicAddress ? `${publicAddress.slice(0, 4)}...${publicAddress.slice(-4)}` : '';
   
-  // For demo purposes, using a mock private address
-  // In production, this would be derived from your viewing key
-  const privateAddress = publicKey ? `priv_${publicAddress.slice(0, 8)}...${publicAddress.slice(-8)}` : '';
-  const privateShort = `priv_...${publicAddress.slice(-4)}`;
+  // Compute actual ZK address from viewing key
+  const privateAddress = useMemo(() => {
+    if (!publicKey) return '';
+    const field = bufferToField(new Uint8Array(publicKey.toBuffer()));
+    return `0x${field.toString(16).padStart(64, '0')}`;
+  }, [publicKey]);
+  
+  const privateShort = privateAddress ? `${privateAddress.slice(0, 12)}...${privateAddress.slice(-12)}` : '';
 
   // Fetch public balance
   useEffect(() => {

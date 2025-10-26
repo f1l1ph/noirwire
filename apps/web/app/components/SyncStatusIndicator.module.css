@@ -8,18 +8,18 @@
 .syncingContainer {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 12px 16px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
   color: white;
-  border-bottom: 2px solid #5568d3;
-  font-size: 14px;
+  border-bottom: 2px solid #4f46e5;
+  font-size: 0.875rem;
   font-weight: 500;
 }
 
 .spinner {
-  width: 16px;
-  height: 16px;
+  width: 1rem;
+  height: 1rem;
   border: 2px solid rgba(255, 255, 255, 0.3);
   border-top-color: white;
   border-radius: 50%;
@@ -40,17 +40,17 @@
 .errorContainer {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
-  padding: 12px 16px;
-  background: #fee;
-  border-bottom: 3px solid #f44;
-  color: #c33;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: rgba(239, 68, 68, 0.08);
+  border-bottom: 3px solid var(--error);
+  color: var(--error);
 }
 
 .errorIcon {
-  font-size: 20px;
+  font-size: 1.25rem;
   flex-shrink: 0;
-  margin-top: 2px;
+  margin-top: 0.125rem;
 }
 
 .errorContent {
@@ -59,25 +59,25 @@
 
 .errorTitle {
   font-weight: 600;
-  font-size: 14px;
-  margin-bottom: 4px;
-  color: #c33;
+  font-size: 0.875rem;
+  margin-bottom: var(--space-1);
+  color: var(--error);
 }
 
 .errorMessage {
-  font-size: 13px;
-  margin-bottom: 6px;
-  color: #a22;
+  font-size: 0.8125rem;
+  margin-bottom: var(--space-2);
+  color: var(--error);
   word-break: break-word;
-  font-family: 'Courier New', monospace;
-  background: rgba(204, 51, 51, 0.05);
-  padding: 6px 8px;
-  border-radius: 4px;
+  font-family: var(--font-mono);
+  background: rgba(239, 68, 68, 0.05);
+  padding: var(--space-2);
+  border-radius: var(--radius-xs);
 }
 
 .errorHelp {
-  font-size: 12px;
-  color: #966;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
   font-style: italic;
 }
 
@@ -85,34 +85,34 @@
   flex-shrink: 0;
   background: none;
   border: none;
-  color: #c33;
-  font-size: 18px;
+  color: var(--error);
+  font-size: 1.125rem;
   cursor: pointer;
-  padding: 4px 8px;
+  padding: var(--space-1) var(--space-2);
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 4px;
-  transition: all 0.2s;
+  border-radius: var(--radius-xs);
+  transition: all var(--transition-fast);
 }
 
 .dismissButton:hover {
-  background: rgba(204, 51, 51, 0.1);
-  color: #f44;
+  background: rgba(239, 68, 68, 0.1);
+  color: #ff5555;
 }
 
 @media (max-width: 768px) {
   .syncingContainer,
   .errorContainer {
-    font-size: 13px;
-    padding: 10px 12px;
+    font-size: 0.8125rem;
+    padding: var(--space-2) var(--space-3);
   }
 
   .errorMessage {
-    font-size: 12px;
+    font-size: 0.75rem;
   }
 
   .errorHelp {
-    font-size: 11px;
+    font-size: 0.6875rem;
   }
 }

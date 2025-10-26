@@ -1,64 +1,74 @@
-/* Dashboard styles with glass effect */
+/* Dashboard Styles - Apple Inspired */
 
 .page {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  padding: 2rem;
-  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+  padding: var(--space-8);
+  background: var(--background);
+  color: var(--text-primary);
 }
 
 .header {
   text-align: center;
-  margin-bottom: 3rem;
+  margin-bottom: var(--space-12);
 }
 
 .header h1 {
-  font-size: 3rem;
+  font-size: 2.5rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #a78bfa 0%, #ec4899 100%);
+  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  margin-bottom: 0.5rem;
+  margin-bottom: var(--space-2);
 }
 
 .header p {
-  font-size: 1.25rem;
-  color: #9ca3af;
+  font-size: 1.0625rem;
+  color: var(--text-secondary);
+  font-weight: 400;
 }
 
 .walletSection {
   display: flex;
   justify-content: center;
-  margin-bottom: 2rem;
+  margin-bottom: var(--space-8);
 }
 
 .walletInfo {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--surface);
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 1rem;
-  padding: 1rem 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4) var(--space-6);
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: var(--space-4);
+  transition: all var(--transition-base);
+}
+
+.walletInfo:hover {
+  border-color: rgba(99, 102, 241, 0.3);
+  background: var(--surface-secondary);
 }
 
 .walletAddress {
-  font-family: var(--font-geist-mono);
+  font-family: var(--font-mono);
   font-size: 0.875rem;
-  color: #a78bfa;
+  color: var(--primary);
 }
 
 .networkBadge {
-  background: rgba(34, 197, 94, 0.2);
-  color: #22c55e;
-  padding: 0.25rem 0.75rem;
-  border-radius: 0.5rem;
+  background: rgba(16, 185, 129, 0.12);
+  color: var(--success);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-sm);
   font-size: 0.75rem;
   font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .main {
@@ -73,60 +83,131 @@
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(12, 1fr);
+  gap: var(--space-5);
   width: 100%;
-  margin-bottom: 2rem;
-  grid-auto-rows: minmax(180px, auto);
+  margin-bottom: var(--space-8);
+  grid-auto-rows: minmax(160px, auto);
 }
 
-@media (min-width: 640px) {
+/* Messages card - Featured 2x2 on desktop */
+.card#messages,
+.card[data-card-id="messages"] {
+  grid-column: span 6;
+  grid-row: span 2;
+}
+
+/* Shield, Unshield - Top row 3 columns each */
+.card#shield,
+.card[data-card-id="shield"] {
+  grid-column: span 3;
+  grid-row: span 1;
+}
+
+.card#unshield,
+.card[data-card-id="unshield"] {
+  grid-column: span 3;
+  grid-row: span 1;
+}
+
+/* Transfer - 3 columns, paired with Shield/Unshield */
+.card#transfer,
+.card[data-card-id="transfer"] {
+  grid-column: span 3;
+  grid-row: span 1;
+}
+
+/* Send, Receive - Bottom row 2 columns each */
+.card#send,
+.card[data-card-id="send"] {
+  grid-column: span 2;
+  grid-row: span 1;
+}
+
+.card#receive,
+.card[data-card-id="receive"] {
+  grid-column: span 2;
+  grid-row: span 1;
+}
+
+/* DeFi, Email - 2 columns each at end */
+.card#defi,
+.card[data-card-id="defi"] {
+  grid-column: span 2;
+  grid-row: span 1;
+}
+
+.card#email,
+.card[data-card-id="email"] {
+  grid-column: span 2;
+  grid-row: span 1;
+}
+
+/* Tablet: 2 columns grid */
+@media (max-width: 1024px) {
   .grid {
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    grid-template-columns: repeat(6, 1fr);
+  }
+
+  /* Messages - featured 2x1.5 */
+  .card#messages,
+  .card[data-card-id="messages"] {
+    grid-column: span 6;
+    grid-row: span 1;
+  }
+
+  /* All others - 3 columns or full width */
+  .card#shield,
+  .card[data-card-id="shield"],
+  .card#unshield,
+  .card[data-card-id="unshield"],
+  .card#transfer,
+  .card[data-card-id="transfer"] {
+    grid-column: span 2;
+  }
+
+  .card#send,
+  .card[data-card-id="send"],
+  .card#receive,
+  .card[data-card-id="receive"],
+  .card#defi,
+  .card[data-card-id="defi"],
+  .card#email,
+  .card[data-card-id="email"] {
+    grid-column: span 2;
   }
 }
 
-@media (min-width: 768px) {
+/* Mobile: 1 column */
+@media (max-width: 640px) {
   .grid {
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 1.25rem;
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+
+  .card,
+  .card#messages,
+  .card[data-card-id="messages"] {
+    grid-column: span 1 !important;
+    grid-row: span 1 !important;
   }
 }
 
-@media (min-width: 1024px) {
-  .grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
-
-/* Card size variants for visual hierarchy */
+/* Card Styles */
 .card {
   position: relative;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--surface);
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 1rem;
-  padding: 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all var(--transition-base);
   overflow: hidden;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-}
-
-/* Featured cards (Messages, Shield, Unshield) - span 2 columns on larger screens */
-.card:nth-child(1),
-.card:nth-child(2) {
-  grid-column: span 1;
-}
-
-@media (min-width: 1024px) {
-  .card:nth-child(1) {
-    grid-column: span 2;
-    grid-row: span 1;
-  }
 }
 
 .card::before {
@@ -136,10 +217,11 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, rgba(167, 139, 250, 0.1) 0%, rgba(236, 72, 153, 0.1) 100%);
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(168, 85, 247, 0.05) 100%);
   opacity: 0;
-  transition: opacity 0.3s ease;
-  border-radius: 1.5rem;
+  transition: opacity var(--transition-base);
+  border-radius: var(--radius-lg);
+  pointer-events: none;
 }
 
 .card:hover::before {
@@ -148,8 +230,8 @@
 
 .card:hover {
   transform: translateY(-4px);
-  border-color: rgba(167, 139, 250, 0.5);
-  box-shadow: 0 20px 40px rgba(167, 139, 250, 0.2);
+  border-color: rgba(99, 102, 241, 0.3);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
 }
 
 .card:active {
@@ -157,13 +239,13 @@
 }
 
 .cardDisabled {
-  opacity: 0.5;
+  opacity: 0.6;
   cursor: not-allowed;
 }
 
 .cardDisabled:hover {
   transform: none;
-  border-color: rgba(255, 255, 255, 0.1);
+  border-color: var(--border);
   box-shadow: none;
 }
 
@@ -172,52 +254,63 @@
 }
 
 .cardIcon {
-  width: 2.5rem;
-  height: 2.5rem;
-  margin-bottom: 0.75rem;
-  color: #a78bfa;
+  width: 2.25rem;
+  height: 2.25rem;
+  margin-bottom: var(--space-3);
+  color: var(--primary);
   flex-shrink: 0;
+  position: relative;
+  z-index: 1;
 }
 
 .cardTitle {
-  font-size: 1.125rem;
+  font-size: 1.0625rem;
   font-weight: 600;
-  margin-bottom: 0.375rem;
-  color: #f3f4f6;
+  margin-bottom: var(--space-1);
+  color: var(--text-primary);
   line-height: 1.3;
+  position: relative;
+  z-index: 1;
 }
 
 .cardDescription {
   font-size: 0.8125rem;
-  color: #9ca3af;
-  margin-bottom: 1rem;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-3);
   line-height: 1.4;
   flex-grow: 1;
+  position: relative;
+  z-index: 1;
+  font-weight: 400;
 }
 
 .cardAction {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  color: #a78bfa;
+  gap: var(--space-2);
+  color: var(--primary);
   font-weight: 600;
   font-size: 0.875rem;
-  transition: gap 0.3s ease;
+  transition: gap var(--transition-base);
+  position: relative;
+  z-index: 1;
 }
 
 .card:hover .cardAction {
-  gap: 0.75rem;
+  gap: var(--space-3);
 }
 
 .comingSoonBadge {
   display: inline-block;
-  background: rgba(249, 115, 22, 0.2);
-  color: #f97316;
-  padding: 0.25rem 0.75rem;
-  border-radius: 0.5rem;
+  background: rgba(249, 115, 22, 0.12);
+  color: var(--warning);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-sm);
   font-size: 0.75rem;
   font-weight: 600;
-  margin-top: 1rem;
+  margin-top: var(--space-3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .tooltip {
@@ -227,13 +320,14 @@
   transform: translate(-50%, -50%);
   background: rgba(0, 0, 0, 0.9);
   color: white;
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-sm);
   font-size: 0.875rem;
   white-space: nowrap;
   pointer-events: none;
   opacity: 0;
-  transition: opacity 0.2s ease;
+  transition: opacity var(--transition-fast);
+  z-index: 2;
 }
 
 .cardDisabled:hover .tooltip {
@@ -242,7 +336,8 @@
 
 .footer {
   text-align: center;
-  padding: 2rem 0;
-  color: #6b7280;
+  padding: var(--space-8) 0;
+  color: var(--text-tertiary);
   font-size: 0.875rem;
+  font-weight: 400;
 }

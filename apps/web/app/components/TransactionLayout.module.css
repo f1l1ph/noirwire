@@ -1,49 +1,50 @@
-/* Modern Transaction Page Styles */
+/* Modern Transaction Page Styles - Apple Inspired */
 
 .page {
   min-height: 100vh;
-  background: linear-gradient(180deg, rgba(102, 126, 234, 0.05) 0%, transparent 50%);
-  font-family: var(--font-geist-sans);
+  background: var(--background);
+  font-family: var(--font-sans);
 }
 
 .header {
   text-align: center;
-  padding: 2rem 2rem 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: var(--space-6) var(--space-6) var(--space-4);
+  border-bottom: 1px solid var(--border);
 }
 
 .backButton {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  color: #667eea;
+  gap: var(--space-2);
+  color: var(--primary);
   text-decoration: none;
   font-size: 0.95rem;
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-  margin-bottom: 1rem;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+  margin-bottom: var(--space-4);
+  font-weight: 500;
 }
 
 .backButton:hover {
-  background: rgba(102, 126, 234, 0.1);
+  background: rgba(99, 102, 241, 0.08);
   transform: translateX(-2px);
 }
 
 .title {
-  font-size: 2.5rem;
+  font-size: 2rem;
   margin: 0;
-  margin-bottom: 0.5rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  margin-bottom: var(--space-2);
+  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .description {
-  color: var(--foreground-secondary, #888);
-  font-size: 1.05rem;
+  color: var(--text-secondary);
+  font-size: 1rem;
   margin: 0;
   font-weight: 400;
 }
@@ -51,22 +52,27 @@
 .container {
   max-width: 700px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: var(--space-6);
 }
 
 .card {
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--surface);
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  padding: 2rem;
-  margin-bottom: 1.5rem;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-8);
+  margin-bottom: var(--space-6);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: all var(--transition-base);
+}
+
+.card:hover {
+  border-color: rgba(99, 102, 241, 0.2);
 }
 
 .inputSection {
-  margin-bottom: 1.5rem;
+  margin-bottom: var(--space-6);
 }
 
 .inputSection:last-child {
@@ -75,66 +81,69 @@
 
 .label {
   display: block;
-  margin-bottom: 0.75rem;
+  margin-bottom: var(--space-3);
   font-weight: 600;
-  font-size: 0.95rem;
-  color: var(--foreground);
+  font-size: 0.9375rem;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.85rem;
 }
 
 .input {
   width: 100%;
-  padding: 1rem;
+  padding: var(--space-4);
   font-size: 1rem;
-  border: 2px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.05);
-  color: var(--foreground);
-  transition: all 0.3s ease;
-  font-family: var(--font-geist-sans);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--background);
+  color: var(--text-primary);
+  transition: all var(--transition-base);
+  font-family: var(--font-sans);
 }
 
 .input:focus {
   outline: none;
-  border-color: #667eea;
-  background: rgba(255, 255, 255, 0.08);
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: var(--primary);
+  background: var(--surface);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
 .input:disabled {
-  opacity: 0.5;
+  opacity: 0.6;
   cursor: not-allowed;
 }
 
 /* Input Hints */
 .inputHint {
-  margin-top: 0.5rem;
-  font-size: 0.875rem;
-  color: rgba(255, 255, 255, 0.5);
+  margin-top: var(--space-2);
+  font-size: 0.8125rem;
+  color: var(--text-tertiary);
 }
 
 /* Token Type Toggle */
 .tokenTypeToggle {
   display: flex;
-  gap: 1rem;
-  margin-top: 0.5rem;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
 }
 
 .tokenTypeButton {
   flex: 1;
-  padding: 0.75rem;
-  font-size: 1rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 2px solid rgba(255, 255, 255, 0.1);
-  border-radius: 0.5rem;
-  color: white;
+  padding: var(--space-3);
+  font-size: 0.95rem;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all var(--transition-fast);
   font-weight: 500;
 }
 
 .tokenTypeButton:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.2);
+  background: var(--surface-secondary);
+  border-color: rgba(99, 102, 241, 0.2);
 }
 
 .tokenTypeButton:disabled {
@@ -143,95 +152,107 @@
 }
 
 .tokenTypeButtonActive {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
   border: none;
+  color: white;
+  font-weight: 600;
 }
 
 .feeDisplay {
-  padding: 1rem;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-  border: 1px solid rgba(102, 126, 234, 0.2);
-  border-radius: 12px;
+  padding: var(--space-4);
+  background: rgba(99, 102, 241, 0.08);
+  border: 1px solid rgba(99, 102, 241, 0.15);
+  border-radius: var(--radius-md);
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
 .feeAmount {
-  font-family: var(--font-geist-mono);
+  font-family: var(--font-mono);
   font-weight: 700;
-  font-size: 1.1rem;
-  color: #667eea;
+  font-size: 1rem;
+  color: var(--primary);
 }
 
 .feeNote {
-  font-size: 0.85rem;
-  color: var(--foreground-secondary, #888);
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
 }
 
 .progressBox {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
-  border: 1px solid rgba(102, 126, 234, 0.3);
-  border-radius: 16px;
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
+  background: rgba(99, 102, 241, 0.08);
+  border: 1px solid rgba(99, 102, 241, 0.15);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  margin-bottom: var(--space-6);
 }
 
 .progressTitle {
-  margin: 0 0 1rem 0;
-  font-size: 1.1rem;
+  margin: 0 0 var(--space-4) 0;
+  font-size: 1rem;
   font-weight: 600;
-  color: var(--foreground);
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.85rem;
 }
 
 .progressSteps {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: var(--space-3);
 }
 
 .stepRow {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 0.75rem;
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 8px;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: var(--radius-md);
+}
+
+@media (prefers-color-scheme: dark) {
+  .stepRow {
+    background: rgba(255, 255, 255, 0.02);
+  }
 }
 
 .stepIcon {
-  font-size: 1.5rem;
-  min-width: 2rem;
+  font-size: 1.25rem;
+  min-width: 1.5rem;
   text-align: center;
 }
 
 .stepText {
-  color: var(--foreground);
-  font-size: 0.95rem;
+  color: var(--text-primary);
+  font-size: 0.9375rem;
+  font-weight: 400;
 }
 
 .button {
   width: 100%;
-  padding: 1.25rem 2rem;
-  font-size: 1.1rem;
+  padding: var(--space-5);
+  font-size: 1rem;
   font-weight: 700;
   border: none;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   cursor: pointer;
-  transition: all 0.3s ease;
-  font-family: var(--font-geist-sans);
-  margin-bottom: 1.5rem;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  transition: all var(--transition-base);
+  font-family: var(--font-sans);
+  margin-bottom: var(--space-6);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .buttonPrimary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
   color: white;
 }
 
 .buttonPrimary:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 8px 16px rgba(99, 102, 241, 0.3);
 }
 
 .buttonPrimary:active:not(:disabled) {
@@ -245,105 +266,110 @@
 }
 
 .statusBox {
-  border-radius: 16px;
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
-  border: 2px solid;
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  margin-bottom: var(--space-6);
+  border: 1px solid;
 }
 
 .statusBoxIdle {
-  background: rgba(102, 126, 234, 0.1);
-  border-color: rgba(102, 126, 234, 0.3);
+  background: rgba(99, 102, 241, 0.08);
+  border-color: rgba(99, 102, 241, 0.15);
 }
 
 .statusBoxSuccess {
-  background: rgba(40, 167, 69, 0.15);
-  border-color: rgba(40, 167, 69, 0.4);
+  background: rgba(16, 185, 129, 0.08);
+  border-color: rgba(16, 185, 129, 0.2);
 }
 
 .statusBoxError {
-  background: rgba(220, 53, 69, 0.15);
-  border-color: rgba(220, 53, 69, 0.4);
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.2);
 }
 
 .infoCard {
-  padding: 1.25rem 1.5rem;
-  border-radius: 14px;
-  background: linear-gradient(135deg, rgba(118, 75, 162, 0.12) 0%, rgba(102, 126, 234, 0.12) 100%);
-  border: 1px solid rgba(102, 126, 234, 0.25);
-  margin-bottom: 1.5rem;
+  padding: var(--space-5);
+  border-radius: var(--radius-md);
+  background: rgba(99, 102, 241, 0.08);
+  border: 1px solid rgba(99, 102, 241, 0.15);
+  margin-bottom: var(--space-6);
 }
 
 .infoHeader {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 0.75rem;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
 }
 
 .infoIcon {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
 }
 
 .infoTitle {
   font-weight: 600;
   text-transform: uppercase;
-  font-size: 0.9rem;
-  letter-spacing: 0.5px;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  color: var(--text-primary);
 }
 
 .infoSubtitle {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   opacity: 0.7;
+  color: var(--text-secondary);
 }
 
 .infoAddressRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
-  background: rgba(255, 255, 255, 0.07);
-  padding: 0.75rem 1rem;
-  border-radius: 10px;
-  font-family: var(--font-geist-mono);
-  font-size: 0.9rem;
+  gap: var(--space-3);
+  background: var(--surface);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
 }
 
 .infoAddressRow code {
   overflow: hidden;
   text-overflow: ellipsis;
+  font-size: 0.8125rem;
 }
 
 .copyButton {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
   color: white;
   border: none;
-  border-radius: 999px;
-  padding: 0.35rem 0.9rem;
-  font-size: 0.8rem;
+  border-radius: var(--radius-full);
+  padding: var(--space-1) var(--space-3);
+  font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
 }
 
 .copyButton:hover {
   transform: translateY(-1px);
-  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.25);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
 }
 
 .infoAddressFull {
-  margin-top: 0.6rem;
+  margin-top: var(--space-2);
   font-size: 0.75rem;
-  font-family: var(--font-geist-mono);
+  font-family: var(--font-mono);
   word-break: break-all;
-  opacity: 0.75;
+  opacity: 0.7;
+  color: var(--text-secondary);
 }
 
 .statusMessage {
-  margin: 0 0 1rem 0;
+  margin: 0 0 var(--space-3) 0;
   font-weight: 600;
-  font-size: 1.05rem;
-  color: var(--foreground);
+  font-size: 1rem;
+  color: var(--text-primary);
 }
 
 .statusMessage:last-child {
@@ -351,88 +377,85 @@
 }
 
 .commitmentBox {
-  margin-top: 1rem;
-  padding: 1rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
+  margin-top: var(--space-4);
+  padding: var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
   word-break: break-all;
-  font-family: var(--font-geist-mono);
-  font-size: 0.875rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
 }
 
 .commitmentLabel {
-  color: var(--foreground-secondary, #888);
+  color: var(--text-secondary);
   font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.7rem;
+  margin-bottom: var(--space-1);
 }
 
 .commitmentValue {
-  color: var(--foreground);
+  color: var(--text-primary);
 }
 
 .errorDetails {
-  margin-top: 1rem;
-  padding: 1rem;
-  background: rgba(220, 53, 69, 0.1);
-  border: 1px solid rgba(220, 53, 69, 0.3);
-  border-radius: 8px;
-  font-size: 0.9rem;
-  color: var(--foreground);
+  margin-top: var(--space-4);
+  padding: var(--space-4);
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  color: var(--text-primary);
   white-space: pre-wrap;
 }
 
 .txLink {
   display: inline-block;
-  margin-top: 1rem;
-  color: #667eea;
+  margin-top: var(--space-4);
+  color: var(--primary);
   text-decoration: none;
   font-weight: 600;
-  font-size: 0.95rem;
-  padding: 0.5rem 1rem;
-  background: rgba(102, 126, 234, 0.1);
-  border-radius: 8px;
-  transition: all 0.2s ease;
+  font-size: 0.9375rem;
+  padding: var(--space-2) var(--space-4);
+  background: rgba(99, 102, 241, 0.08);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
 }
 
 .txLink:hover {
-  background: rgba(102, 126, 234, 0.2);
+  background: rgba(99, 102, 241, 0.15);
   transform: translateY(-1px);
 }
 
 .txSignature {
-  margin-top: 0.75rem;
-  font-size: 0.8rem;
-  color: var(--foreground-secondary, #888);
-  font-family: var(--font-geist-mono);
+  margin-top: var(--space-3);
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
   word-break: break-all;
-  opacity: 0.7;
+  opacity: 0.8;
 }
 
 .infoBox {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.infoTitle {
-  margin: 0 0 1rem 0;
-  font-size: 1.05rem;
-  font-weight: 600;
-  color: var(--foreground);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--space-6);
+  margin-bottom: var(--space-6);
 }
 
 .infoList {
   margin: 0;
-  padding-left: 1.5rem;
-  color: var(--foreground-secondary, #888);
-  font-size: 0.925rem;
+  padding-left: var(--space-6);
+  color: var(--text-secondary);
+  font-size: 0.9375rem;
   line-height: 1.7;
 }
 
 .infoList li {
-  margin-bottom: 0.5rem;
+  margin-bottom: var(--space-2);
 }
 
 .infoList li:last-child {
@@ -441,68 +464,68 @@
 
 .emptyState {
   text-align: center;
-  color: var(--foreground-secondary, #888);
-  padding: 2rem;
+  color: var(--text-secondary);
+  padding: var(--space-8);
   font-size: 1rem;
 }
 
 /* Note Status Indicator */
 .noteStatusBox {
-  margin-top: 1rem;
-  padding: 0.75rem;
+  margin-top: var(--space-4);
+  padding: var(--space-3);
   background: rgba(0, 102, 204, 0.08);
   border-left: 4px solid #0066cc;
-  border-radius: 8px;
-  font-size: 0.9rem;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
 }
 
 .noteStatusBox p {
-  margin: 0.25rem 0;
-  font-size: 0.85rem;
-  color: var(--foreground);
+  margin: var(--space-1) 0;
+  font-size: 0.8125rem;
+  color: var(--text-primary);
 }
 
 .noteStatusBox p:first-child {
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
 }
 
 .noteStatusBox p:last-child {
-  margin-top: 0.5rem;
+  margin-top: var(--space-2);
   font-style: italic;
-  color: var(--foreground-secondary);
+  color: var(--text-secondary);
 }
 
 @media (max-width: 768px) {
   .title {
-    font-size: 2rem;
+    font-size: 1.75rem;
   }
 
   .container {
-    padding: 1rem;
+    padding: var(--space-4);
   }
 
   .card {
-    padding: 1.5rem;
+    padding: var(--space-6);
   }
 
   .button {
-    padding: 1rem 1.5rem;
-    font-size: 1rem;
+    padding: var(--space-4);
+    font-size: 0.95rem;
   }
 }
 
 /* Dark mode support */
 @media (prefers-color-scheme: dark) {
   .card {
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--surface);
   }
 
   .input {
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--background);
   }
 
   .input:focus {
-    background: rgba(255, 255, 255, 0.06);
+    background: var(--surface);
   }
 }

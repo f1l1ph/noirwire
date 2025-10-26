@@ -6,7 +6,7 @@
  */
 
 import { Connection, PublicKey } from '@solana/web3.js';
-import { Note, saveNote, getNotes } from './notes';
+import { Note } from './types';
 import { computeCommitment, bufferToField } from './crypto';
 import * as crypto from 'crypto';
 import {
@@ -80,8 +80,6 @@ export class AutoViewingKeySync {
    * Scan blockchain for new commitments
    */
   private async syncFromCommitments(): Promise<SyncResult> {
-    const walletAddress = this.config.walletPublicKey.toBase58();
-
     try {
       const signatures = await this.config.connection.getSignaturesForAddress(
         PROGRAM_ID,
@@ -92,9 +90,8 @@ export class AutoViewingKeySync {
       console.log(`📊 Found ${signatures.length} transactions to scan`);
 
       let found = 0;
-      const existingCommitments = new Set(
-        getNotes(walletAddress).map((n) => n.commitment),
-      );
+      // TODO: Use API to fetch existing commitments instead of local storage
+      const existingCommitments = new Set<string>();
 
       // Process transactions in parallel
       type SigInfo = { err: unknown; signature: string };
@@ -138,7 +135,7 @@ export class AutoViewingKeySync {
       results.forEach((result: SettledResult) => {
         if (result.status === 'fulfilled') {
           result.value.forEach((note: Note) => {
-            saveNote(walletAddress, note);
+            // TODO: Save note to API instead of local storage
             found++;
             console.log(
               `✅ Found note: ${parseFloat(note.amount).toFixed(UI_CONFIG.NOTE_DISPLAY_DECIMALS)} SOL`,
@@ -249,15 +246,9 @@ export class AutoViewingKeySync {
    * Notify listeners of balance update
    */
   private notifyUpdate(): void {
-    const walletAddress = this.config.walletPublicKey.toBase58();
-    const notes = getNotes(walletAddress);
-    const unspent = notes.filter((n) => !n.spent);
-    const totalBalance = unspent.reduce(
-      (sum, n) => sum + parseFloat(n.amount),
-      0,
-    );
-
-    this.config.onUpdate?.(unspent.length, totalBalance);
+    // TODO: Implement with actual note data from API/context
+    // This will be called when sync completes
+    this.config.onUpdate?.(0, 0);
   }
 
   /**

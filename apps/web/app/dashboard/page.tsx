@@ -139,6 +139,8 @@ export default function DashboardPage() {
             return (
               <div
                 key={feature.id}
+                data-card-id={feature.id}
+                id={feature.id}
                 className={`${styles.card} ${feature.disabled ? styles.cardDisabled : ''}`}
                 onClick={() => handleCardClick(feature)}
                 role="button"
