@@ -115,8 +115,9 @@ export default function MessagesPage() {
         
         setEncryptionReady(true);
       } catch (err) {
-        console.error('Failed to initialize encryption:', err);
-        setError('Failed to initialize encryption. Please refresh the page.');
+        console.error('❌ Failed to initialize encryption:', err);
+        const errorMessage = err instanceof Error ? err.message : String(err);
+        setError(`Encryption initialization failed: ${errorMessage}`);
       }
     };
 

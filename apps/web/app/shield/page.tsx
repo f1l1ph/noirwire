@@ -4,11 +4,11 @@ import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { PublicKey, TransactionInstruction, Transaction } from '@solana/web3.js';
 import { useState } from 'react';
 import { computeCommitment, fieldToBuffer, bufferToField } from '../../lib/crypto';
-import { getNextNoteIndex, deriveBlindingFactor } from '../../lib/notes';
 import { generateProof, decodeProof } from '../../lib/proofService';
 import { ProcessingStep, ShieldInput } from '../../lib/types';
 import { API_BASE_URL, FRONTEND_URL } from '../../lib/constants';
 import { useWalletData } from '../context/WalletDataContext';
+import { getNextNoteIndex, deriveBlindingFactor } from '../../lib/privacyUtils';
 import styles from '../components/TransactionLayout.module.css';
 import Navigation from '../components/Navigation';
 
@@ -39,7 +39,7 @@ export default function ShieldPage() {
       setErrorDetails('');
       
       const walletAddress = publicKey.toBase58();
-      const noteIndex = getNextNoteIndex(walletAddress);
+      const noteIndex = getNextNoteIndex();
       const blinding = await deriveBlindingFactor(walletAddress, noteIndex);
       
       // Convert full 32-byte public key to field element

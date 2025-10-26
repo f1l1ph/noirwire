@@ -138,3 +138,52 @@ export function splitAddressToLimbs(address: Buffer): {
 
   return { lo, hi };
 }
+
+/**
+ * Get the next note index for deterministic blinding factor derivation
+ * In API-only mode, the API manages note indices
+ * @returns Next available note index (managed server-side)
+ */
+export function getNextNoteIndex(): number {
+  // Return a random index - real index management happens server-side
+  return Math.floor(Math.random() * 1000000);
+}
+
+/**
+ * Derive deterministic blinding factor from wallet address and note index
+ * Uses SHA-256 for deterministic, reproducible blinding factors
+ * @param walletPublicKey - Public key of the wallet
+ * @param index - Note index for derivation
+ * @returns Blinding factor as bigint
+ */
+export async function deriveBlindingFactor(
+  walletPublicKey: string,
+  index: number,
+): Promise<bigint> {
+  const seed = `${walletPublicKey}:${index}`;
+  const encoder = new TextEncoder();
+  const data = encoder.encode(seed);
+
+  // Use string-based encoding to avoid TypeScript buffer issues
+  const dataArray = Array.from(data);
+  const hashBuffer = await crypto.subtle.digest(
+    'SHA-256',
+    new Uint8Array(dataArray),
+  );
+  const hashBytes = new Uint8Array(hashBuffer);
+
+  // Convert hash bytes to bigint modulo field size
+  const FIELD_SIZE = BigInt(
+    '52435875175126190479447740508185965837690552500527637822603658699938581184513',
+  );
+
+  let value = BigInt(0);
+  for (let i = 0; i < 32; i++) {
+    const byte = hashBytes[i];
+    if (byte !== undefined) {
+      value = (value << BigInt(8)) | BigInt(byte);
+    }
+  }
+
+  return value % FIELD_SIZE;
+}

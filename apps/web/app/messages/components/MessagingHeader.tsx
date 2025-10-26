@@ -10,7 +10,7 @@ import {
   EyeSlashIcon
 } from '@heroicons/react/24/outline';
 import { LAMPORTS_PER_SOL } from '@solana/web3.js';
-import { getUnspentNotes } from '../../../lib/notes';
+import { useWalletData } from '../../context/WalletDataContext';
 import styles from './MessagingHeader.module.css';
 
 interface MessagingHeaderProps {
@@ -20,6 +20,7 @@ interface MessagingHeaderProps {
 export default function MessagingHeader({ unreadCount }: MessagingHeaderProps) {
   const { publicKey } = useWallet();
   const { connection } = useConnection();
+  const { notes } = useWalletData();
   
   // Balances
   const [publicBalance, setPublicBalance] = useState<number | null>(null);
@@ -61,18 +62,19 @@ export default function MessagingHeader({ unreadCount }: MessagingHeaderProps) {
     return () => clearInterval(interval);
   }, [publicKey, connection]);
 
-  // Calculate private balance from unspent notes
+  // Calculate private balance from notes (API-backed)
   useEffect(() => {
-    if (!publicKey) return;
+    if (!notes || notes.length === 0) {
+      setPrivateBalance(0);
+      return;
+    }
 
-    const walletAddress = publicKey.toBase58();
-    const unspentNotes = getUnspentNotes(walletAddress);
-    const totalLamports = unspentNotes.reduce((sum, note) => {
+    const totalLamports = notes.reduce((sum, note) => {
       const amount = typeof note.amount === 'string' ? BigInt(note.amount) : BigInt(0);
       return sum + amount;
     }, BigInt(0));
     setPrivateBalance(Number(totalLamports) / LAMPORTS_PER_SOL);
-  }, [publicKey]);
+  }, [notes]);
 
   const copyToClipboard = async (text: string, type: 'public' | 'private') => {
     try {

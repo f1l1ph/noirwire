@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Note } from '../../lib/types';
-import { getUnspentNotes } from '../../lib/notes';
+import { useWalletData } from '../context/WalletDataContext';
 import styles from './NoteSelector.module.css';
 
 interface NoteSelectorProps {
@@ -13,13 +13,14 @@ interface NoteSelectorProps {
 
 export function NoteSelector({ walletAddress, onSelect, selectedNote }: NoteSelectorProps) {
   const [notes, setNotes] = useState<Note[]>([]);
+  const { getUnspentNotes } = useWalletData();
 
   useEffect(() => {
-    if (walletAddress) {
-      const unspent = getUnspentNotes(walletAddress);
+    if (walletAddress && getUnspentNotes) {
+      const unspent = getUnspentNotes();
       setNotes(unspent);
     }
-  }, [walletAddress]);
+  }, [walletAddress, getUnspentNotes]);
 
   if (notes.length === 0) {
     return (

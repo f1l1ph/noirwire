@@ -3,12 +3,13 @@
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { PublicKey, TransactionInstruction, Transaction, SystemProgram } from '@solana/web3.js';
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { deriveBlindingFactor, getNextNoteIndex } from '../../lib/notes';
 import { computeCommitment, fieldToBuffer, bufferToField } from '../../lib/crypto';
 import {
   deriveSecretKey,
   generateNoteId,
-  getMerkleProof
+  getMerkleProof,
+  deriveBlindingFactor,
+  getNextNoteIndex,
 } from '../../lib/privacyUtils';
 import { generateProof, decodeProof } from '../../lib/proofService';
 import { Note, ProcessingStep, TransferInput } from '../../lib/types';
@@ -201,7 +202,7 @@ export default function TransferPage() {
       
       // Generate new note for recipient
       const walletAddress = publicKey.toBase58();
-      const newNoteIndex = getNextNoteIndex(walletAddress);
+      const newNoteIndex = getNextNoteIndex();
       const newBlinding = await deriveBlindingFactor(walletAddress, newNoteIndex);
       const newCommitment = await computeCommitment(recipientPk, transferAmountLamports, newBlinding);
       

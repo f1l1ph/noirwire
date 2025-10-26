@@ -7,12 +7,7 @@ import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import styles from "./WalletInfo.module.css";
 import { useWalletBalance, useTreasuryBalance } from "../../lib/hooks";
 import { UI_CONFIG } from "../../lib/constants";
-import {
-  getTotalUnspentBalance,
-  getUnspentNotes,
-  exportNotes,
-  importNotes,
-} from "../../lib/notes";
+import { useWalletData } from "../context/WalletDataContext";
 
 /**
  * WalletInfo Component
@@ -28,33 +23,32 @@ function WalletInfoClient(): React.ReactElement {
   const { connection } = useConnection();
   const { balance: walletBalance } = useWalletBalance();
   const { balance: treasuryBalance } = useTreasuryBalance();
+  const { notes, noteCount, refreshNotes } = useWalletData();
 
   const [zkAddress, setZkAddress] = useState<string>("");
   const [shieldedBalance, setShieldedBalance] = useState<number>(0);
-  const [noteCount, setNoteCount] = useState<number>(0);
   const [syncing, setSyncing] = useState<boolean>(false);
   const [copiedZkAddress, setCopiedZkAddress] = useState<boolean>(false);
   const timerRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   /**
-   * Load shielded notes from localStorage
+   * Load shielded notes from context (API-only)
    */
   const loadShieldedNotes = useCallback(() => {
     if (!publicKey) {
       setShieldedBalance(0);
-      setNoteCount(0);
       setZkAddress("");
       return;
     }
 
-    const walletAddress = publicKey.toBase58();
-    setShieldedBalance(getTotalUnspentBalance(walletAddress));
-    setNoteCount(getUnspentNotes(walletAddress).length);
+    // Calculate total balance from notes
+    const total = notes.reduce((sum, note) => sum + parseFloat(note.amount), 0);
+    setShieldedBalance(total);
     
     // Generate ZK address (first 16 bytes of public key)
     const zkAddr = publicKey.toBuffer().slice(0, 16).toString("hex");
     setZkAddress("0x" + zkAddr);
-  }, [publicKey]);
+  }, [publicKey, notes]);
 
   /**
    * Copy ZK Address to clipboard with proper cleanup
@@ -91,30 +85,33 @@ function WalletInfoClient(): React.ReactElement {
   }, [loadShieldedNotes]);
 
   /**
-   * Export notes to clipboard
+   * Export notes (API-backed)
+   * In API-only mode, notes are always backed up on-chain
    */
   const handleExport = async () => {
-    if (!publicKey) return;
-    const backup = exportNotes(publicKey.toBase58());
-    await navigator.clipboard.writeText(backup);
-    alert("Notes backup copied to clipboard. Store it safely.");
+    if (!publicKey || !notes) return;
+    try {
+      const notesData = JSON.stringify(notes, null, 2);
+      await navigator.clipboard.writeText(notesData);
+      alert("Notes data copied to clipboard. All notes are also backed up on-chain via the API.");
+    } catch (error) {
+      alert("Failed to copy notes");
+      console.error('Export notes failed:', error);
+    }
   };
 
   /**
-   * Import notes from user input
+   * Refresh notes from API
+   * In API-only mode, this pulls the latest from blockchain
    */
   const handleImport = async () => {
     if (!publicKey) return;
-    const backup = prompt("Paste your notes backup:");
-    if (!backup) return;
-    
     try {
-      importNotes(publicKey.toBase58(), backup);
-      loadShieldedNotes(); // Refresh view
-      alert("Notes imported successfully");
+      await refreshNotes();
+      alert("Notes refreshed from API");
     } catch (error) {
-      alert("Failed to import notes: invalid backup");
-      console.error('Import notes failed:', error);
+      alert("Failed to refresh notes");
+      console.error('Refresh notes failed:', error);
     }
   };
 
@@ -131,7 +128,6 @@ function WalletInfoClient(): React.ReactElement {
         connection,
         walletPublicKey: publicKey,
         onUpdate: (nc: number, tb: number) => {
-          setNoteCount(nc);
           setShieldedBalance(tb);
         },
         onError: (e: Error) => {

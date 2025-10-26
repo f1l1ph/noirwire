@@ -50,17 +50,39 @@ export interface EncryptedMessage {
  */
 async function openDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, DB_VERSION);
-
-    request.onerror = () => reject(request.error);
-    request.onsuccess = () => resolve(request.result);
-
-    request.onupgradeneeded = (event) => {
-      const db = (event.target as IDBOpenDBRequest).result;
-      if (!db.objectStoreNames.contains(STORE_NAME)) {
-        db.createObjectStore(STORE_NAME);
+    try {
+      if (!indexedDB) {
+        throw new Error('IndexedDB is not available in this browser');
       }
-    };
+
+      const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+      request.onerror = () => {
+        console.error('❌ IndexedDB open error:', request.error);
+        reject(
+          new Error(
+            `IndexedDB open failed: ${request.error?.message || 'Unknown error'}`,
+          ),
+        );
+      };
+
+      request.onsuccess = () => {
+        console.log('✅ IndexedDB opened successfully');
+        resolve(request.result);
+      };
+
+      request.onupgradeneeded = (event) => {
+        console.log('📝 IndexedDB upgrade needed');
+        const db = (event.target as IDBOpenDBRequest).result;
+        if (!db.objectStoreNames.contains(STORE_NAME)) {
+          db.createObjectStore(STORE_NAME);
+          console.log('✅ Created object store:', STORE_NAME);
+        }
+      };
+    } catch (error) {
+      console.error('❌ Error opening IndexedDB:', error);
+      reject(error);
+    }
   });
 }
 
@@ -71,30 +93,62 @@ async function storeKeyPair(
   walletAddress: string,
   keyPair: EncryptionKeyPair,
 ): Promise<void> {
-  const db = await openDB();
+  try {
+    console.log('💾 Opening IndexedDB for storage...');
+    const db = await openDB();
 
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction([STORE_NAME], 'readwrite');
-    const store = transaction.objectStore(STORE_NAME);
+    return new Promise((resolve, reject) => {
+      try {
+        const transaction = db.transaction([STORE_NAME], 'readwrite');
+        const store = transaction.objectStore(STORE_NAME);
 
-    // Store as base64 for easier debugging
-    const data = {
-      publicKey: encodeBase64(keyPair.publicKey),
-      secretKey: encodeBase64(keyPair.secretKey),
-      createdAt: Date.now(),
-    };
+        // Store as base64 for easier debugging
+        const data = {
+          publicKey: encodeBase64(keyPair.publicKey),
+          secretKey: encodeBase64(keyPair.secretKey),
+          createdAt: Date.now(),
+        };
 
-    const request = store.put(data, walletAddress);
+        console.log('📝 Storing keypair for wallet:', walletAddress);
+        const request = store.put(data, walletAddress);
 
-    request.onsuccess = () => {
-      transaction.oncomplete = () => db.close();
-      resolve();
-    };
-    request.onerror = () => {
-      db.close();
-      reject(request.error);
-    };
-  });
+        request.onsuccess = () => {
+          console.log('✅ Keypair stored successfully');
+          transaction.oncomplete = () => {
+            db.close();
+            resolve();
+          };
+        };
+
+        request.onerror = () => {
+          db.close();
+          console.error('❌ Store put error:', request.error);
+          reject(
+            new Error(
+              `Failed to store keypair: ${request.error?.message || 'Unknown error'}`,
+            ),
+          );
+        };
+
+        transaction.onerror = () => {
+          db.close();
+          console.error('❌ Transaction error:', transaction.error);
+          reject(
+            new Error(
+              `Transaction failed: ${transaction.error?.message || 'Unknown error'}`,
+            ),
+          );
+        };
+      } catch (err) {
+        db.close();
+        console.error('❌ Error in storeKeyPair:', err);
+        reject(err);
+      }
+    });
+  } catch (error) {
+    console.error('❌ Failed to store keypair:', error);
+    throw error;
+  }
 }
 
 /**
@@ -104,34 +158,68 @@ async function retrieveKeyPair(
   walletAddress: string,
 ): Promise<EncryptionKeyPair | null> {
   try {
+    console.log('📖 Opening IndexedDB for retrieval...');
     const db = await openDB();
 
     return new Promise((resolve, reject) => {
-      const transaction = db.transaction([STORE_NAME], 'readonly');
-      const store = transaction.objectStore(STORE_NAME);
-      const request = store.get(walletAddress);
+      try {
+        const transaction = db.transaction([STORE_NAME], 'readonly');
+        const store = transaction.objectStore(STORE_NAME);
 
-      request.onsuccess = () => {
-        const data = request.result;
-        transaction.oncomplete = () => db.close();
+        console.log('🔍 Retrieving keypair for wallet:', walletAddress);
+        const request = store.get(walletAddress);
 
-        if (!data) {
-          console.log('📍 No keypair found in IndexedDB for:', walletAddress);
-          resolve(null);
-        } else {
-          console.log('✅ Keypair retrieved from IndexedDB');
-          resolve({
-            publicKey: decodeBase64(data.publicKey),
-            secretKey: decodeBase64(data.secretKey),
-          });
-        }
-      };
+        request.onsuccess = () => {
+          const data = request.result;
+          console.log('📊 Retrieved data:', data ? 'Found' : 'Not found');
+          transaction.oncomplete = () => db.close();
 
-      request.onerror = () => {
+          if (!data) {
+            console.log('📍 No keypair found in IndexedDB for:', walletAddress);
+            resolve(null);
+          } else {
+            try {
+              const keyPair = {
+                publicKey: decodeBase64(data.publicKey),
+                secretKey: decodeBase64(data.secretKey),
+              };
+              console.log('✅ Keypair retrieved and decoded successfully');
+              resolve(keyPair);
+            } catch (decodeError) {
+              console.error('❌ Failed to decode keypair:', decodeError);
+              reject(
+                new Error(
+                  `Failed to decode keypair: ${decodeError instanceof Error ? decodeError.message : String(decodeError)}`,
+                ),
+              );
+            }
+          }
+        };
+
+        request.onerror = () => {
+          db.close();
+          console.error('❌ Get request error:', request.error);
+          reject(
+            new Error(
+              `Failed to retrieve keypair: ${request.error?.message || 'Unknown error'}`,
+            ),
+          );
+        };
+
+        transaction.onerror = () => {
+          db.close();
+          console.error('❌ Retrieve transaction error:', transaction.error);
+          reject(
+            new Error(
+              `Transaction failed: ${transaction.error?.message || 'Unknown error'}`,
+            ),
+          );
+        };
+      } catch (err) {
         db.close();
-        console.error('❌ Failed to retrieve keypair:', request.error);
-        reject(request.error);
-      };
+        console.error('❌ Error in retrieveKeyPair:', err);
+        reject(err);
+      }
     });
   } catch (error) {
     console.error('❌ IndexedDB error in retrieveKeyPair:', error);
@@ -192,31 +280,63 @@ export async function initializeEncryption(
 ): Promise<string> {
   try {
     console.log('🔐 Initializing encryption for:', walletAddress);
+    console.log('🌐 Browser supports IndexedDB:', !!indexedDB);
 
     // Check if keypair already exists
-    let keyPair = await retrieveKeyPair(walletAddress);
+    let keyPair: EncryptionKeyPair | null = null;
+    try {
+      console.log('🔍 Checking for existing keypair...');
+      keyPair = await retrieveKeyPair(walletAddress);
+    } catch (retrieveError) {
+      console.warn('⚠️ Warning retrieving keypair:', retrieveError);
+      // Continue - we'll generate a new one
+    }
 
     if (!keyPair) {
-      console.log('📝 Generating new keypair...');
-      // Generate new keypair
-      if (signature) {
-        keyPair = deriveKeyPairFromSignature(signature);
-      } else {
-        keyPair = generateKeyPair();
+      console.log('📝 No existing keypair found, generating new one...');
+      try {
+        // Generate new keypair
+        if (signature) {
+          console.log('🔑 Deriving keypair from wallet signature...');
+          keyPair = deriveKeyPairFromSignature(signature);
+        } else {
+          console.log('🎲 Generating random keypair...');
+          keyPair = generateKeyPair();
+        }
+        console.log('✅ Keypair generated successfully');
+      } catch (generateError) {
+        console.error('❌ Failed to generate keypair:', generateError);
+        throw new Error(
+          `Keypair generation failed: ${generateError instanceof Error ? generateError.message : String(generateError)}`,
+        );
       }
 
       // Store in IndexedDB
-      console.log('💾 Storing keypair in IndexedDB...');
-      await storeKeyPair(walletAddress, keyPair);
-      console.log('✅ Keypair stored successfully');
+      try {
+        console.log('💾 Storing keypair in IndexedDB...');
+        await storeKeyPair(walletAddress, keyPair);
+        console.log('✅ Keypair stored successfully');
+      } catch (storeError) {
+        console.error('❌ Failed to store keypair:', storeError);
+        throw new Error(
+          `Keypair storage failed: ${storeError instanceof Error ? storeError.message : String(storeError)}`,
+        );
+      }
     } else {
-      console.log('✅ Using existing keypair');
+      console.log('✅ Using existing keypair from storage');
     }
 
     // Return public key as base64
-    const publicKeyBase64 = encodeBase64(keyPair.publicKey);
-    console.log('🎉 Encryption initialized successfully');
-    return publicKeyBase64;
+    try {
+      const publicKeyBase64 = encodeBase64(keyPair.publicKey);
+      console.log('🎉 Encryption initialized successfully');
+      return publicKeyBase64;
+    } catch (encodeError) {
+      console.error('❌ Failed to encode public key:', encodeError);
+      throw new Error(
+        `Public key encoding failed: ${encodeError instanceof Error ? encodeError.message : String(encodeError)}`,
+      );
+    }
   } catch (error) {
     console.error('❌ Encryption initialization failed:', error);
     throw new Error(
