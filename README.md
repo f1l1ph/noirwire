@@ -1,145 +1,69 @@
-# NoirWire
+# NoirWire Protocol
 
-Zero-knowledge privacy protocol for Solana using Groth16 proofs with end-to-end encrypted messaging.
+> **Privacy-preserving payments on Solana**
 
-## Features
+🌐 **Live:** [noirwire.com](https://noirwire.com) (Testnet)
 
-- 🔒 **Private Payments**: Shield, transfer, and unshield tokens using zero-knowledge proofs
-- 💬 **Secure Messaging**: E2E encrypted wallet-to-wallet messaging with realtime updates
-- 🎯 **Dashboard**: Modern UI with easy access to all features
+---
+
+## ⚠️ Hackathon MVP - Unaudited
+
+This is an experimental MVP. Not for production use. Testnet only.
+
+---
+
+## How It Works
+
+NoirWire enables private transfers on Solana using zero-knowledge proofs:
+
+1. **Shield** - Deposit SOL into a private pool
+2. **Transfer** - Send privately (amounts & recipients hidden via Groth16 proofs on BN254)
+3. **Unshield** - Withdraw to any public wallet
+
+**Stack:** Circom circuits, SnarkJS, Solana program, Next.js frontend, Supabase for encrypted notes.
+
+**Security note:** Experimental code, unaudited. Potential bugs in circuit implementation and indexer synchronization. Do not use with real funds.
+
+---
 
 ## Quick Start
 
-### Prerequisites
-
-- Node.js >= 18.x
-- Yarn 1.22.x
-
-### Development
-
 ```bash
-# Install dependencies
+# Install
 yarn install
 
-# Run web + API together
-yarn dev
-
-# Or separately
-yarn dev:web      # Web: http://localhost:3001
-yarn dev:api      # API: http://localhost:3000
-
-# Build for production
-yarn build
+# Run locally
+yarn dev              # Both web + API
+yarn dev:web          # Frontend: http://localhost:3001
+yarn dev:api          # Backend: http://localhost:3000
 ```
 
-## Environment Setup
-
-### Required Variables
+### Environment
 
 Create `.env.local` in `apps/api/`:
 
 ```bash
-# Supabase (get from: https://app.supabase.com/project/_/settings/api)
 SUPABASE_URL=your_supabase_url
 SUPABASE_SERVICE_KEY=your_service_role_key
-
-# Solana
-SOLANA_RPC_URL=https://api.devnet.solana.com
+SOLANA_RPC_URL=https://api.testnet.solana.com
 NOIRWIRE_PROGRAM_ID=Hza5rjYmJnoYsjsgsuxLkyxLoWVo6RCUZxCB3x17v8qz
 SOLANA_COMMITMENT=confirmed
-
-# Admin keypair for Merkle root publishing
-# Get from: cat ~/.config/solana/devnet-wallet.json
-SOLANA_ADMIN_KEYPAIR=[your,keypair,bytes,here]
+SOLANA_ADMIN_KEYPAIR=[your,keypair,bytes]
 ```
 
-⚠️ **Never commit `.env.local` to git** - it contains secrets!
+---
 
-### Web App Config
+## Documentation
 
-Create `.env.local` in `apps/web/`:
+Full technical details in `/docs`:
 
-```bash
-NEXT_PUBLIC_SOLANA_RPC=https://api.devnet.solana.com
-NEXT_PUBLIC_PROGRAM_ID=Hza5rjYmJnoYsjsgsuxLkyxLoWVo6RCUZxCB3x17v8qz
-NEXT_PUBLIC_API_URL=http://localhost:3000
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
-```
+- **[docs/DOCS.md](./docs/DOCS.md)** - Protocol overview
+- **[docs/TECHNICAL.md](./docs/TECHNICAL.md)** - Implementation details
+- **[docs/API.md](./docs/API.md)** - REST API reference
+- **[docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md)** - System architecture
 
-## Railway Deployment
+---
 
-Deploy the API to Railway:
+## Contact
 
-```bash
-# Install Railway CLI
-npm i -g @railway/cli
-
-# Login & init
-railway login
-railway init
-
-# Add environment variables
-railway variables set \
-  SUPABASE_URL=your_url \
-  SUPABASE_SERVICE_KEY=your_key \
-  SOLANA_RPC_URL=https://api.devnet.solana.com \
-  NOIRWIRE_PROGRAM_ID=Hza5rjYmJnoYsjsgsuxLkyxLoWVo6RCUZxCB3x17v8qz \
-  SOLANA_COMMITMENT=confirmed \
-  SOLANA_ADMIN_KEYPAIR=[your,keypair,bytes]
-
-# Deploy
-railway up
-```
-
-Or via Railway Dashboard:
-
-1. Connect GitHub repo
-2. Add environment variables
-3. Set build: `yarn build`
-4. Set start: `yarn start`
-5. Deploy
-
-## Troubleshooting
-
-### Merkle Root Timeout (60 seconds)
-
-**Error**: "Merkle root pending on-chain after 60 seconds"
-
-**Solution**: Add `SOLANA_ADMIN_KEYPAIR` to `.env.local` and restart
-
-```bash
-docker-compose down api && docker-compose up -d api
-docker logs noirwire-api | grep "Admin keypair"
-```
-
-### Insufficient SOL
-
-**Error**: "insufficient funds" when publishing roots
-
-```bash
-# Get admin address from logs
-docker logs noirwire-api | grep "Admin keypair loaded"
-
-# Airdrop SOL (devnet only)
-solana airdrop 2 <your_admin_address> --url devnet
-```
-
-### Port Already in Use
-
-```bash
-lsof -ti:3000 | xargs kill -9  # Kill API
-lsof -ti:3001 | xargs kill -9  # Kill web
-```
-
-## Local Docker Testing
-
-```bash
-# Run API in Docker (web runs locally)
-docker-compose up -d api
-yarn dev:web
-```
-
-## License
-
-See LICENSE file for details.
+ph1l1ph@proton.me

@@ -58,11 +58,13 @@ export interface SyncStatus {
 const getIndexerBaseUrl = (): string => {
   const envUrl = process.env.NEXT_PUBLIC_API_URL;
   if (envUrl) {
+    console.debug(`[Indexer Client] Using API_URL from env: ${envUrl}`);
     return envUrl;
   }
 
   if (typeof window === 'undefined') {
     // Server-side fallback
+    console.debug('[Indexer Client] Server-side, using localhost fallback');
     return 'http://localhost:3000';
   }
 
@@ -72,11 +74,16 @@ const getIndexerBaseUrl = (): string => {
 
   // If on localhost, use localhost API
   if (host.includes('localhost') || host.includes('127.0.0.1')) {
+    console.debug('[Indexer Client] Localhost detected, using localhost API');
     return 'http://localhost:3000';
   }
 
-  // Otherwise, use same origin
-  return `${protocol}//${host}`;
+  // Production: try same origin first
+  const sameOriginUrl = `${protocol}//${host}`;
+  console.debug(
+    `[Indexer Client] Production detected, using same-origin API: ${sameOriginUrl}`,
+  );
+  return sameOriginUrl;
 };
 
 const callIndexer = async <T>(
@@ -87,47 +94,64 @@ const callIndexer = async <T>(
   const baseUrl = getIndexerBaseUrl();
   const url = `${baseUrl}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
 
-  try {
-    console.debug(
-      `[Indexer Client] ${method} ${url}` +
-        (data ? ` payload=${JSON.stringify(data).slice(0, 200)}...` : ''),
-    );
-    const response = await axios.request<T>({
-      url,
-      method,
-      data,
-      headers: { 'Content-Type': 'application/json' },
-      timeout: 10_000,
-    });
+  const maxRetries = 2;
+  let lastError: Error | null = null;
 
-    console.debug(
-      `[Indexer Client] ${method} ${url} -> ${response.status}`,
-    );
-    return response.data;
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      const status = error.response?.status;
-      const payload =
-        typeof error.response?.data === 'string'
-          ? error.response.data
-          : error.response?.data !== undefined
-            ? JSON.stringify(error.response.data)
-            : error.message;
-
-      console.error(
-        `[Indexer Client] ${method} ${url} failed${status ? ` (status ${status})` : ''}`,
-        {
-          payload,
-        },
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      console.debug(
+        `[Indexer Client] ${method} ${url}` +
+          (data ? ` payload=${JSON.stringify(data).slice(0, 200)}...` : '') +
+          (attempt > 0 ? ` (attempt ${attempt + 1}/${maxRetries + 1})` : ''),
       );
+      const response = await axios.request<T>({
+        url,
+        method,
+        data,
+        headers: { 'Content-Type': 'application/json' },
+        timeout: 10_000,
+      });
 
-      throw new Error(
-        `Indexer request failed${status ? ` (${status})` : ''}: ${payload}`,
-      );
+      console.debug(`[Indexer Client] ${method} ${url} -> ${response.status}`);
+      return response.data;
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+
+      if (axios.isAxiosError(error)) {
+        const status = error.response?.status;
+        const payload =
+          typeof error.response?.data === 'string'
+            ? error.response.data
+            : error.response?.data !== undefined
+              ? JSON.stringify(error.response.data)
+              : error.message;
+
+        console.error(
+          `[Indexer Client] ${method} ${url} failed${status ? ` (status ${status})` : ''}${attempt < maxRetries ? ', retrying...' : ', giving up'}`,
+          {
+            attempt: attempt + 1,
+            maxRetries: maxRetries + 1,
+            payload,
+          },
+        );
+
+        // Retry on network errors, timeouts, and 5xx errors
+        if (attempt < maxRetries && (status === undefined || status >= 500)) {
+          const delayMs = Math.min(1000 * Math.pow(2, attempt), 5000);
+          await new Promise((resolve) => setTimeout(resolve, delayMs));
+          continue;
+        }
+
+        throw new Error(
+          `Indexer request failed${status ? ` (${status})` : ''}: ${payload}`,
+        );
+      }
+
+      throw error;
     }
-
-    throw error;
   }
+
+  throw lastError || new Error('Indexer request failed after all retries');
 };
 
 /**
@@ -216,11 +240,11 @@ export async function addCommitmentToIndexer(
   );
 
   try {
-    const result = await callIndexer<{ success: boolean; root: string; index: number }>(
-      'POST',
-      `/indexer/${circuit}/commit`,
-      { commitment },
-    );
+    const result = await callIndexer<{
+      success: boolean;
+      root: string;
+      index: number;
+    }>('POST', `/indexer/${circuit}/commit`, { commitment });
 
     // Validate response has expected fields
     if (!result || typeof result.index !== 'number' || !result.root) {
@@ -285,9 +309,7 @@ export async function getCircuitCommitmentsFromIndexer(
     );
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error);
-    console.error(
-      `[Indexer Client] Failed to fetch commitments: ${errorMsg}`,
-    );
+    console.error(`[Indexer Client] Failed to fetch commitments: ${errorMsg}`);
     throw error;
   }
 }
@@ -297,9 +319,7 @@ export async function getIndexerSyncStatus(): Promise<SyncStatus> {
     return await callIndexer<SyncStatus>('GET', '/indexer/sync-status');
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error);
-    console.error(
-      `[Indexer Client] Failed to get sync status: ${errorMsg}`,
-    );
+    console.error(`[Indexer Client] Failed to get sync status: ${errorMsg}`);
     throw error;
   }
 }
@@ -312,7 +332,8 @@ export async function logIndexerDiagnostics(
   commitment?: string,
 ): Promise<void> {
   console.groupCollapsed(
-    `[Indexer Diagnostics] ${circuit} ${commitment ? `commitment=${commitment.slice(0, 16)}...` : ''
+    `[Indexer Diagnostics] ${circuit} ${
+      commitment ? `commitment=${commitment.slice(0, 16)}...` : ''
     }`,
   );
   try {
@@ -321,9 +342,7 @@ export async function logIndexerDiagnostics(
 
     const circuitCount = status.trees?.[circuit]?.count ?? 0;
     if (circuitCount === 0) {
-      console.warn(
-        `[Indexer Diagnostics] ${circuit} tree is empty (count=0).`,
-      );
+      console.warn(`[Indexer Diagnostics] ${circuit} tree is empty (count=0).`);
     } else {
       const commitments = await getCircuitCommitmentsFromIndexer(circuit);
       console.info(
@@ -332,7 +351,10 @@ export async function logIndexerDiagnostics(
       );
     }
   } catch (diagError) {
-    console.error('[Indexer Diagnostics] Failed to collect diagnostics:', diagError);
+    console.error(
+      '[Indexer Diagnostics] Failed to collect diagnostics:',
+      diagError,
+    );
   } finally {
     console.groupEnd();
   }

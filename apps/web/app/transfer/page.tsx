@@ -142,18 +142,23 @@ export default function TransferPage() {
       setErrorDetails('');
       
       // Parse amounts
-      const transferAmountLamports = BigInt(Math.floor(parseFloat(transferAmount) * 1e9));
       const feeLamports = BigInt(Math.floor(parseFloat(fee) * 1e9));
       const oldAmountLamports = BigInt(Math.floor(parseFloat(selectedNote.amount) * 1e9));
       
+      // Calculate actual transfer amount AFTER deducting fee
+      // So if user inputs 0.5 SOL and fee is 0.0001, recipient gets 0.4999 SOL
+      const userInputAmount = BigInt(Math.floor(parseFloat(transferAmount) * 1e9));
+      const transferAmountLamports = userInputAmount - feeLamports; // Deduct fee from what user entered
+      const changeAmountLamports = oldAmountLamports - userInputAmount; // Change is whatever's left
+      
       // Validate amounts
-      if (transferAmountLamports + feeLamports > oldAmountLamports) {
-        throw new Error('Transfer amount + fee exceeds note balance');
+      if (userInputAmount > oldAmountLamports) {
+        throw new Error(`Amount exceeds note balance (${selectedNote.amount} SOL available)`);
       }
       
-      // Validate transfer amount is positive
+      // Validate transfer amount is positive after fee deduction
       if (transferAmountLamports <= 0n) {
-        throw new Error('Transfer amount must be greater than 0');
+        throw new Error(`Amount too small after fee deduction. Minimum: ${(parseFloat(fee) + 0.0001).toFixed(4)} SOL`);
       }
       
       // Derive secret key
@@ -296,6 +301,7 @@ export default function TransferPage() {
       await markNoteAsSpent(selectedNote.commitment);
       
       const newCommitmentHex = newCommitment.toString(16).padStart(64, '0');
+      const transferAmountSOL = (Number(transferAmountLamports) / 1e9).toFixed(4);
       
       // Add new commitment to indexer (transfer tree)
       setStatus('Adding commitment to indexer...');
@@ -322,16 +328,42 @@ export default function TransferPage() {
         // Don't fail the whole operation if indexer fails
       }
       
-      // Save new note for recipient
+      // Save new note for recipient (amount AFTER fee deduction)
       await addNote({
         commitment: newCommitmentHex,
         blinding: newBlinding.toString(),
-        amount: transferAmount,
+        amount: transferAmountSOL,
         recipient: normalizedRecipientAddress || recipientZkAddress,
         timestamp: Date.now(),
         txSignature: signature,
         spent: false,
       });
+      
+      // If there's change left over, create a change note for yourself
+      if (changeAmountLamports > 0n) {
+        const changeAmount = (Number(changeAmountLamports) / 1e9).toFixed(4);
+        const changeIndex = getNextNoteIndex();
+        const changeBlinding = await deriveBlindingFactor(walletAddress, changeIndex);
+        const changeCommitment = await computeCommitment(
+          bufferToField(new Uint8Array(publicKey!.toBuffer())),
+          changeAmountLamports,
+          changeBlinding
+        );
+        const changeCommitmentHex = changeCommitment.toString(16).padStart(64, '0');
+        
+        // Save change note
+        await addNote({
+          commitment: changeCommitmentHex,
+          blinding: changeBlinding.toString(),
+          amount: changeAmount,
+          recipient: myZkAddress || '', // This is your own note
+          timestamp: Date.now(),
+          txSignature: signature,
+          spent: false,
+        });
+        
+        console.log(`[Transfer] Created change note: ${changeAmount} SOL`);
+      }
       
       setStep('success');
       setStatus('✅ Transfer successful! New note added to Merkle tree.');
@@ -479,9 +511,16 @@ export default function TransferPage() {
                 aria-label="Transfer amount in SOL"
                 placeholder="0.1"
               />
-              <p className={styles.inputHint}>
-                Fee: {fee} SOL automatically included • Available: {totalBalance} SOL
-              </p>
+              {transferAmount && (
+                <p className={styles.inputHint}>
+                  💰 Recipient gets: {(parseFloat(transferAmount) - parseFloat(fee)).toFixed(4)} SOL • Fee: {fee} SOL
+                </p>
+              )}
+              {!transferAmount && (
+                <p className={styles.inputHint}>
+                  Available: {totalBalance} SOL
+                </p>
+              )}
             </div>
           </div>
         )}

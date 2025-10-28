@@ -36,7 +36,7 @@ export default function LandingPage() {
     {
       icon: LockClosedIcon,
       title: 'Secure by Design',
-      description: 'Military-grade encryption and audited smart contracts',
+      description: 'Military-grade encryption with cryptographic privacy',
     },
     {
       icon: BoltIcon,
