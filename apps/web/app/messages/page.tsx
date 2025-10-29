@@ -61,11 +61,27 @@ export default function MessagesPage() {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     
+    console.log('🔐 Checking Supabase configuration...');
+    console.log('   URL configured:', !!supabaseUrl);
+    console.log('   Key configured:', !!supabaseKey);
+    
     if (supabaseUrl && supabaseKey) {
-      initializeSupabase(supabaseUrl, supabaseKey);
-      setSupabaseInitialized(true);
+      try {
+        initializeSupabase(supabaseUrl, supabaseKey);
+        console.log('✅ Supabase initialized successfully');
+        setSupabaseInitialized(true);
+      } catch (err) {
+        const errMsg = err instanceof Error ? err.message : String(err);
+        console.error('❌ Failed to initialize Supabase:', errMsg);
+        setError(`Supabase initialization error: ${errMsg}`);
+      }
     } else {
-      setError('Supabase configuration missing. Please check your environment variables.');
+      const missing = [];
+      if (!supabaseUrl) missing.push('NEXT_PUBLIC_SUPABASE_URL');
+      if (!supabaseKey) missing.push('NEXT_PUBLIC_SUPABASE_ANON_KEY');
+      const errMsg = `Missing environment variables: ${missing.join(', ')}`;
+      console.error('❌ ' + errMsg);
+      setError(errMsg);
     }
   }, []);
 
@@ -100,6 +116,7 @@ export default function MessagesPage() {
         
         // ALWAYS ensure user exists in Supabase (handles both new and existing users)
         try {
+          console.log('📱 Checking if user exists in Supabase...');
           const existingUser = await getUserByWallet(walletAddress);
           if (!existingUser) {
             console.log('🔑 Registering user in Supabase...');
@@ -109,8 +126,16 @@ export default function MessagesPage() {
             console.log('✅ User already exists in Supabase');
           }
         } catch (dbError) {
-          console.error('❌ Failed to register user in Supabase:', dbError);
-          throw new Error('Failed to register encryption keys. Please check your connection.');
+          const dbErrMsg = dbError instanceof Error ? dbError.message : String(dbError);
+          console.error('❌ Supabase error:', dbErrMsg);
+          console.error('   - Check network connection');
+          console.error('   - Check Supabase URL and key');
+          console.error('   - Check if users table exists');
+          const detailedError = `Supabase connection failed: ${dbErrMsg}. Make sure:
+1. Network is connected
+2. Supabase URL and key are correct (check env vars)
+3. Users table exists in your Supabase database`;
+          throw new Error(detailedError);
         }
         
         setEncryptionReady(true);
