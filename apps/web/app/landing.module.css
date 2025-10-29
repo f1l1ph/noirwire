@@ -479,6 +479,22 @@
   color: var(--primary);
 }
 
+/* Footer Newsletter - Right column */
+.footerNewsletter {
+  flex: 0 0 auto;
+  min-width: 250px;
+}
+
+.footerNewsletterLabel {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: var(--space-2);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.7;
+}
+
 .footerBottom {
   text-align: center;
   padding-top: var(--space-6);
@@ -489,6 +505,19 @@
   color: var(--text-tertiary);
   font-size: 0.85rem;
   font-weight: 400;
+}
+
+/* Newsletter Section - Removed, now in footer */
+.newsletterSection {
+  display: none;
+}
+
+.newsletterTitle {
+  display: none;
+}
+
+.newsletterSubtitle {
+  display: none;
 }
 
 /* Responsive */

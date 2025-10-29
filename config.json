@@ -9,7 +9,6 @@
   },
   "cors": {
     "allowedOrigins": [
-      "https://noirwire.vercel.app",
       "http://localhost:3000",
       "http://localhost:3001",
       "https://noirwire.com"

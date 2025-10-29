@@ -6,6 +6,7 @@ import { NotesModule } from './notes/notes.module';
 import { VerifierModule } from './verifier/verifier.module';
 import { WalletModule } from './wallet/wallet.module';
 import { IndexerModule } from './indexer/indexer.module';
+import { NewsletterModule } from './newsletter/newsletter.module';
 
 import { AppService } from './app.service';
 import { AppController } from './app.controller';
@@ -24,6 +25,7 @@ import { VerifierService } from './verifier/verifier.service';
     VerifierModule,
     WalletModule,
     IndexerModule,
+    NewsletterModule,
   ],
   controllers: [AppController, ProofController],
   providers: [AppService, ProofService, VerifierService],

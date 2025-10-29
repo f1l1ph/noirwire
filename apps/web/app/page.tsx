@@ -11,6 +11,7 @@ import {
   ChartBarIcon,
 } from '@heroicons/react/24/outline';
 import Navigation from './components/Navigation';
+import NewsletterForm from './components/NewsletterForm';
 import styles from './landing.module.css';
 
 export default function LandingPage() {
@@ -220,6 +221,12 @@ export default function LandingPage() {
             <a href="mailto:contact@noirwire.app">
               Contact
             </a>
+          </div>
+
+          {/* Newsletter Signup - Right column */}
+          <div className={styles.footerNewsletter}>
+            <p className={styles.footerNewsletterLabel}>Stay updated</p>
+            <NewsletterForm />
           </div>
         </div>
         

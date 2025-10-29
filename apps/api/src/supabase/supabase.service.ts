@@ -216,4 +216,11 @@ export class SupabaseService {
     this.logger.debug(`Supabase configured: ${configured}`);
     return configured;
   }
+
+  /**
+   * Get the Supabase client instance
+   */
+  getClient(): SupabaseClient | null {
+    return this.supabase;
+  }
 }

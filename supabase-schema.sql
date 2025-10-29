@@ -483,5 +483,146 @@ SELECT archive_old_messages(90);
 */
 
 -- ============================================================================
+-- NEWSLETTER SUBSCRIPTION TABLE
+-- ============================================================================
+
+-- Newsletter subscriptions table
+CREATE TABLE IF NOT EXISTS newsletter_subscriptions (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  email TEXT NOT NULL UNIQUE,
+  subscribed BOOLEAN DEFAULT true,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  unsubscribed_at TIMESTAMP WITH TIME ZONE,
+  unsubscribe_token TEXT UNIQUE, -- Token for secure unsubscribe links
+  ip_address TEXT, -- For spam prevention
+  user_agent TEXT -- For spam prevention
+);
+
+-- Create indexes for faster email lookups
+CREATE INDEX IF NOT EXISTS idx_newsletter_email 
+ON newsletter_subscriptions(email);
+
+CREATE INDEX IF NOT EXISTS idx_newsletter_subscribed 
+ON newsletter_subscriptions(subscribed, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_newsletter_unsubscribe_token 
+ON newsletter_subscriptions(unsubscribe_token);
+
+-- Add comments
+COMMENT ON TABLE newsletter_subscriptions IS 'Stores email newsletter subscriptions';
+COMMENT ON COLUMN newsletter_subscriptions.email IS 'Email address for newsletter';
+COMMENT ON COLUMN newsletter_subscriptions.subscribed IS 'Whether the subscription is active';
+COMMENT ON COLUMN newsletter_subscriptions.unsubscribe_token IS 'Secure token for unsubscribe links';
+COMMENT ON COLUMN newsletter_subscriptions.ip_address IS 'IP address at subscription time (spam prevention)';
+COMMENT ON COLUMN newsletter_subscriptions.user_agent IS 'User agent at subscription time (spam prevention)';
+
+-- Enable RLS
+ALTER TABLE newsletter_subscriptions ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policies (permissive for hackathon)
+DROP POLICY IF EXISTS "Newsletter public access" ON newsletter_subscriptions;
+DROP POLICY IF EXISTS "Newsletter insert access" ON newsletter_subscriptions;
+
+-- Allow anyone to insert subscriptions
+CREATE POLICY "Newsletter insert access" ON newsletter_subscriptions
+  FOR INSERT WITH CHECK (true);
+
+-- Allow reading subscriptions (for verification)
+CREATE POLICY "Newsletter public access" ON newsletter_subscriptions
+  FOR SELECT USING (true);
+
+-- Allow updates (e.g., unsubscribe)
+CREATE POLICY "Newsletter update access" ON newsletter_subscriptions
+  FOR UPDATE USING (true) WITH CHECK (true);
+
+-- Helper function to generate unsubscribe token
+CREATE OR REPLACE FUNCTION generate_unsubscribe_token()
+RETURNS TEXT AS $$
+BEGIN
+  RETURN encode(gen_random_bytes(32), 'hex');
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to safely subscribe/update email
+CREATE OR REPLACE FUNCTION subscribe_newsletter(
+  p_email TEXT,
+  p_ip_address TEXT DEFAULT NULL,
+  p_user_agent TEXT DEFAULT NULL
+)
+RETURNS TABLE(
+  success BOOLEAN,
+  message TEXT,
+  email_address TEXT
+) AS $$
+DECLARE
+  v_token TEXT;
+BEGIN
+  -- Generate unsubscribe token
+  v_token := generate_unsubscribe_token();
+  
+  -- Insert or update the subscription
+  INSERT INTO newsletter_subscriptions (email, subscribed, unsubscribe_token, ip_address, user_agent)
+  VALUES (LOWER(TRIM(p_email)), true, v_token, p_ip_address, p_user_agent)
+  ON CONFLICT (email) DO UPDATE
+  SET 
+    subscribed = true,
+    updated_at = NOW(),
+    unsubscribed_at = NULL,
+    unsubscribe_token = v_token,
+    ip_address = COALESCE(p_ip_address, newsletter_subscriptions.ip_address),
+    user_agent = COALESCE(p_user_agent, newsletter_subscriptions.user_agent)
+  WHERE newsletter_subscriptions.subscribed = false;
+  
+  RETURN QUERY SELECT
+    true AS success,
+    'Successfully subscribed to newsletter' AS message,
+    LOWER(TRIM(p_email)) AS email_address;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to unsubscribe using token
+CREATE OR REPLACE FUNCTION unsubscribe_newsletter(p_token TEXT)
+RETURNS TABLE(
+  success BOOLEAN,
+  message TEXT
+) AS $$
+DECLARE
+  v_email TEXT;
+BEGIN
+  -- Find and update the subscription
+  UPDATE newsletter_subscriptions
+  SET 
+    subscribed = false,
+    unsubscribed_at = NOW(),
+    updated_at = NOW()
+  WHERE unsubscribe_token = p_token AND subscribed = true
+  RETURNING email INTO v_email;
+  
+  IF v_email IS NOT NULL THEN
+    RETURN QUERY SELECT true, 'Successfully unsubscribed from newsletter';
+  ELSE
+    RETURN QUERY SELECT false, 'Token not found or already unsubscribed';
+  END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to get newsletter stats
+CREATE OR REPLACE FUNCTION get_newsletter_stats()
+RETURNS TABLE(
+  total_subscribers BIGINT,
+  active_subscribers BIGINT,
+  unsubscribed BIGINT
+) AS $$
+BEGIN
+  RETURN QUERY SELECT
+    COUNT(*) FILTER (WHERE true) AS total_subscribers,
+    COUNT(*) FILTER (WHERE subscribed = true) AS active_subscribers,
+    COUNT(*) FILTER (WHERE subscribed = false) AS unsubscribed
+  FROM newsletter_subscriptions;
+END;
+$$ LANGUAGE plpgsql;
+
+-- ============================================================================
 -- End of Schema
 -- ============================================================================
